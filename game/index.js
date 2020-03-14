@@ -1,48 +1,3 @@
-class Player {
-    constructor(locStart, color) {
-        this.location = Object.create(locStart);
-        this.width = 20;
-        this.height = 20;
-
-        this.velocity = 4.0;
-
-        this.mvMatrix = mat4.create();
-        mat4.identity(this.mvMatrix);
-        mat4.translate(this.mvMatrix, normalToClip(Object.create(locStart)));
-
-        this.vertices = [
-            -10.0, 10.0,
-            10.0, 10.0,
-            -10.0, -10.0,
-            10.0, -10.0
-        ];
-        this.color = color;
-        initBuffers(this);
-    }
-}
-
-function Ball(locStart, color) {
-    this.location = Object.create(locStart);
-    this.width = 20;
-    this.height = 20;
-
-    this.velocity = [-1.0, -1.0, 0.0];
-
-    this.mvMatrix = mat4.create();
-    mat4.identity(this.mvMatrix);
-    mat4.translate(this.mvMatrix, normalToClip(Object.create(locStart)));
-
-    this.vertices = [
-        -10.0, 10.0,
-        10.0, 10.0,
-        -10.0, -10.0,
-        10.0, -10.0
-    ];
-    this.color = color;
-    initBuffers(this);
-}
-
-
 var debug = 0;
 
 var gl;
@@ -56,6 +11,8 @@ var currentlyPressedKeys = {};
 
 var playerObj;
 var ball;
+var balls = [];
+var allObj = [];
 
 function initGL(canvas) {
     try {
@@ -136,6 +93,7 @@ function setMatrixUniforms() {
 function initObjects() {
     playerObj = new Player([400.0, 50.0, 0.0], [0.0, 1.0, 0.0, 1.0]);
     ball = new Ball([250.0, 250.0, 0.0], [0.0, 0.0, 1.0, 1.0]);
+    balls.push(ball);
 }
 
 function initBuffers(object) {
@@ -227,7 +185,7 @@ function checkCollision() {
         ball.location[0] - playerObj.location[0] <= 0 &&
         Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0)) {
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.1, 1.1, 1.0]);
+        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([-(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
             .location[0] - playerObj.location[0])), 0, 0]));
         ball.location[0] = playerObj.location[0] - (ball.width / 2.0) - (playerObj.width / 2.0);
@@ -237,13 +195,30 @@ function checkCollision() {
         ball.location[0] - playerObj.location[0] >= 0 &&
         Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0)) {
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.1, 1.1, 1.0]);
+        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
             .location[0] - playerObj.location[0])), 0, 0]));
         ball.location[0] = playerObj.location[0] + (ball.width / 2.0) + (playerObj.width / 2.0);
     }
+    // Jika kena sisi atas dari player
+    if (Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0) &&
+        ball.location[1] - playerObj.location[1] >= 0 &&
+        Math.abs(ball.location[0] - playerObj.location[0]) <= (ball.width / 2.0) + (playerObj.width / 2.0)) {
+        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+        mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
+            .location[1] - playerObj.location[1])), 0]));
+        ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
+        console.log("sasa")
+    }
+    
+    // Bola Kena Border Atas/Bawah
     if ((ball.location[1] - (ball.height / 2.0)) < 0.0 || (ball.location[1] + (ball.height / 2.0)) >= canvas.height) {
         vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+    }
+    // Bola Kena Border Kanan/kiri
+    if ((ball.location[0] - (ball.width / 2.0)) < 0.0 || (ball.location[0] + (ball.width / 2.0)) >= canvas.height) {
+        vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
     }
 }
 
@@ -300,11 +275,7 @@ function animate() {
 }
 
 function drawDebug() {
-    console.log(playerObj.location[0])
-    console.log("kanan")
-    console.log(playerObj.location[0] - (playerObj.height / 2.0))
-    console.log("kiri")
-    console.log(playerObj.location[0] + (playerObj.height / 2.0))
+    // Add Debug here
 }
 
 function webGLStart() {
@@ -320,4 +291,53 @@ function webGLStart() {
     document.onkeyup = handleKeyUp;
 
     tick();
+}
+
+// Kelas yang dibutuhkan
+// Kelas Player untuk pembuatan player
+class Player {
+    constructor(locStart, color) {
+        this.location = Object.create(locStart);
+        this.width = 50;
+        this.height = 50;
+
+        this.velocity = 4.0;
+
+        this.mvMatrix = mat4.create();
+        mat4.identity(this.mvMatrix);
+        mat4.translate(this.mvMatrix, normalToClip(Object.create(locStart)));
+
+        this.vertices = [
+            -25.0, 25.0,
+            25.0, 25.0,
+            -25.0, -25.0,
+            25.0, -25.0
+        ];
+        this.color = color;
+        initBuffers(this);
+    }
+}
+
+// Kelas Bola untuk handle pembuatan bola
+class Ball {
+    constructor(locStart, color) {
+        this.location = Object.create(locStart);
+        this.width = 20;
+        this.height = 20;
+
+        this.velocity = [-1.0, -1.0, 0.0];
+
+        this.mvMatrix = mat4.create();
+        mat4.identity(this.mvMatrix);
+        mat4.translate(this.mvMatrix, normalToClip(Object.create(locStart)));
+
+        this.vertices = [
+            -10.0, 10.0,
+            10.0, 10.0,
+            -10.0, -10.0,
+            10.0, -10.0
+        ];
+        this.color = color;
+        initBuffers(this);
+    }
 }
