@@ -4,7 +4,7 @@
 
 		<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
 		<script type="text/javascript" src="Mat3Translate.js"></script>
-		<script type="text/javascript" src="webgl-utils.js"></script>
+		<script type="text/javascript" src="Common/webgl-utils.js"></script>
 		
 <!--Shaders-->
 		<script id="shader-vs" type="x-shader/x-vertex">
@@ -42,7 +42,6 @@
 <!--/Shaders-->
 
 		<script type="text/javascript">
-<!--Classes-->
 			function Player(locStart, color) {
 				this.location = Object.create(locStart);
 				this.width = 20;
@@ -84,7 +83,6 @@
 				this.color = color;
 				initBuffers(this);
 			}
-<!--/Classes-->
 			
 			var debug = 0;
 
