@@ -1,3 +1,5 @@
+"use strict";
+
 var step = 0.01;
 
 /**
