@@ -156,7 +156,7 @@ function handleKeys() {
 }
 
 function checkCollision() {
-    // Apakah sudah sampai pinggir canvas atau belum untuk atas dan bawah
+    // Apakah player sudah sampai pinggir canvas 
     // Menyentuh border atas
     if (playerObj.location[1] - (playerObj.height / 2.0) <= 0) {
         mat4.translate(playerObj.mvMatrix, normalToClip([0, (playerObj.height / 2.0) - playerObj.location[1], 0]));
@@ -168,7 +168,7 @@ function checkCollision() {
             .height / 2.0)), 0]));
         playerObj.location[1] = canvas.height - (playerObj.height / 2.0);
     }
-    // Apakah sudah sampai pinggir canvas atau belum untuk kanan dan kiri
+
     // Menyentuh Kanan
     if (playerObj.location[0] - (playerObj.width / 2.0) <= 0) {
         mat4.translate(playerObj.mvMatrix, normalToClip([(playerObj.width / 2.0) - playerObj.location[0], 0, 0]));
@@ -180,38 +180,89 @@ function checkCollision() {
         playerObj.location[0] = canvas.width - (playerObj.width / 2.0);
     }
 
-    // Jika kena sisi kiri dari player
-    if (Math.abs(ball.location[0] - playerObj.location[0]) <= (ball.width / 2.0) + (playerObj.width / 2.0) &&
-        ball.location[0] - playerObj.location[0] <= 0 &&
-        Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0)) {
+    //Interaksi Objek
+
+    // BUG: 
+    let collisionLeft = Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0) &&
+        ball.location[0] - playerObj.location[0] <= 0 && Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0);
+    let collisionRight = Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0) &&
+        ball.location[0] - playerObj.location[0] >= 0 && Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0);
+    let collisionBottom = Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0) &&
+        ball.location[1] - playerObj.location[1] >= 0 && Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0);
+    let collisionTop = Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0) &&
+        ball.location[1] - playerObj.location[1] <= 0 && Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0);
+
+
+    //Jika kena sisi kiri dari player
+    if (collisionLeft) {
+        console.log("----- 1")
+        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
+        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
+        console.log("----- 2")
+        console.log(ball.location[0] - playerObj.location[0])
+        console.log("----- 3")
+        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
+        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
         vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([-(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
             .location[0] - playerObj.location[0])), 0, 0]));
         ball.location[0] = playerObj.location[0] - (ball.width / 2.0) - (playerObj.width / 2.0);
+        console.log("kiri kena player")
     }
     // Jika kena sisi kanan dari player
-    if (Math.abs(ball.location[0] - playerObj.location[0]) <= (ball.width / 2.0) + (playerObj.width / 2.0) &&
-        ball.location[0] - playerObj.location[0] >= 0 &&
-        Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0)) {
+    if (collisionRight) {
+        console.log("----- 1")
+        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
+        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
+        console.log("----- 2")
+        console.log(ball.location[0] - playerObj.location[0])
+        console.log("----- 3")
+        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
+        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
         vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
             .location[0] - playerObj.location[0])), 0, 0]));
         ball.location[0] = playerObj.location[0] + (ball.width / 2.0) + (playerObj.width / 2.0);
+        console.log("kanan kena player")
+    }
+    // Jika kena sisi bawah dari player
+    if (collisionBottom) {
+        console.log("----- 1")
+        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
+        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
+        console.log("----- 2")
+        console.log(ball.location[1] - playerObj.location[1])
+        console.log("----- 3")
+        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
+        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
+        // vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+        // vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+        // mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
+        //     .location[1] - playerObj.location[1])), 0]));
+        // ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
+        console.log("bawah kena player")
     }
     // Jika kena sisi atas dari player
-    if (Math.abs(ball.location[1] - playerObj.location[1]) <= (ball.height / 2.0) + (playerObj.height / 2.0) &&
-        ball.location[1] - playerObj.location[1] >= 0 &&
-        Math.abs(ball.location[0] - playerObj.location[0]) <= (ball.width / 2.0) + (playerObj.width / 2.0)) {
-        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
-            .location[1] - playerObj.location[1])), 0]));
-        ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
-        console.log("sasa")
+    if (collisionTop) {
+        console.log("----- 1")
+        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
+        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
+        console.log("----- 2")
+        console.log(ball.location[1] - playerObj.location[1])
+        console.log("----- 3")
+        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
+        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
+        // vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+        // vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+        // mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
+        //     .location[1] - playerObj.location[1])), 0]));
+        // ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
+        console.log("atas kena player")
     }
-    
+
+
     // Bola Kena Border Atas/Bawah
     if ((ball.location[1] - (ball.height / 2.0)) < 0.0 || (ball.location[1] + (ball.height / 2.0)) >= canvas.height) {
         vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
