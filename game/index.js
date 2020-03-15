@@ -155,6 +155,87 @@ function handleKeys() {
     }
 }
 
+// Mengambil bounding dari object
+function getBoundingBox(object) {
+    let minX, minY, maxX, maxY
+    let width = object.width;
+    let height = object.height;
+    let originX = object.location[0];
+    let originY = object.location[1];
+
+    minX = originX - width / 2;
+    maxX = originX + width / 2;
+    minY = originY - height / 2;
+    maxY = originY + height / 2;
+
+    // normalize min and max
+    if (minX > maxX) {
+        let temp = maxX
+        maxX = minX
+        minX = temp
+    }
+    if (minY > maxY) {
+        let temp = maxY
+        maxY = minY
+        minY = temp
+    }
+    return [
+        [minX, minY],
+        [maxX, maxY]
+    ]
+}
+
+// Berbagai fungsi helper untuk tahu tabrakan atau tidak
+// fungsi helper apakah antar objek ada titik yang overlap atau tabrakan
+function isSpanOverlap(startA, endA, startB, endB) {
+    return startA <= endB && startB <= endA
+}
+
+// Cek apakah objek a dan b tabrakan
+function isColliding(bBox_1, bBox_2) {
+    let collidesHorizontally = isSpanOverlap(
+        bBox_1[0][0], bBox_1[1][0],
+        bBox_2[0][0], bBox_2[1][0]
+    )
+    let collidesVertically = isSpanOverlap(
+        bBox_1[0][1], bBox_1[1][1],
+        bBox_2[0][1], bBox_2[1][1]
+    )
+    if (collidesHorizontally && collidesVertically) {
+        return true
+    } else {
+        return false
+    }
+}
+
+// Fungsi cek orientasi tabrakan yang mengembailkan arah tabrakan jika tabrakan dan akan mengembalikan undefined ketika obj tidak bertabrakan
+function getCollisionOrientation(objA, objB) {
+    let objABbox = getBoundingBox(objA);
+    let objBBbox = getBoundingBox(objB);
+
+    // Jika Obj tidak ada yang tabrakan tidak lanjut
+    if (!isColliding(objABbox, objBBbox)) {
+        return undefined
+    }
+
+    // Jika objB tabrakan dikiri, sisi kirinya lebih kiri dari sisi objA
+    // Sisi atas objB lebih tinggi dari objA
+    if (objBBbox[0][0] < objABbox[0][0] && objBBbox[0][1] < objABbox[1][1]) return "LEFT";
+
+    // Jika objB tabrakan di kanan, sisi kanannya lebih kanan dari sisi objA
+    // dan Sisi atas objB harus lebih tinggi dari objA
+    if (objBBbox[1][0] > objABbox[1][0] && objBBbox[0][1] < objABbox[1][1]) return "RIGHT";
+
+    // Tinggal cek apakah sisi atas objB lebih tinggi dari A jika sudah ketemu tinggal else
+    if (objBBbox[0][1] < objABbox[0][1]) {
+        return "TOP";
+    } else {
+        return "BOTTOM";
+    }
+
+}
+
+
 function checkCollision() {
     // Apakah player sudah sampai pinggir canvas 
     // Menyentuh border atas
@@ -180,29 +261,11 @@ function checkCollision() {
         playerObj.location[0] = canvas.width - (playerObj.width / 2.0);
     }
 
-    //Interaksi Objek
-
-    // BUG: 
-    let collisionLeft = Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0) &&
-        ball.location[0] - playerObj.location[0] <= 0 && Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0);
-    let collisionRight = Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0) &&
-        ball.location[0] - playerObj.location[0] >= 0 && Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0);
-    let collisionBottom = Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0) &&
-        ball.location[1] - playerObj.location[1] >= 0 && Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0);
-    let collisionTop = Math.abs(ball.location[1] - playerObj.location[1]) <= ((ball.height + playerObj.height) / 2.0) &&
-        ball.location[1] - playerObj.location[1] <= 0 && Math.abs(ball.location[0] - playerObj.location[0]) <= ((ball.width + playerObj.width) / 2.0);
-
-
+    //Interaksi Antar Objek
+    let collisionOrientation = getCollisionOrientation(playerObj, ball);
+    
     //Jika kena sisi kiri dari player
-    if (collisionLeft) {
-        console.log("----- 1")
-        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
-        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
-        console.log("----- 2")
-        console.log(ball.location[0] - playerObj.location[0])
-        console.log("----- 3")
-        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
-        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
+    if (collisionOrientation === "LEFT") {
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
         vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([-(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
@@ -211,15 +274,7 @@ function checkCollision() {
         console.log("kiri kena player")
     }
     // Jika kena sisi kanan dari player
-    if (collisionRight) {
-        console.log("----- 1")
-        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
-        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
-        console.log("----- 2")
-        console.log(ball.location[0] - playerObj.location[0])
-        console.log("----- 3")
-        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
-        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
+    if (collisionOrientation === "RIGHT") {
         vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
         vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
         mat4.translate(ball.mvMatrix, normalToClip([(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
@@ -228,40 +283,23 @@ function checkCollision() {
         console.log("kanan kena player")
     }
     // Jika kena sisi bawah dari player
-    if (collisionBottom) {
-        console.log("----- 1")
-        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
-        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
-        console.log("----- 2")
-        console.log(ball.location[1] - playerObj.location[1])
-        console.log("----- 3")
-        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
-        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
-        // vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-        // vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        // mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
-        //     .location[1] - playerObj.location[1])), 0]));
-        // ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
+    if (collisionOrientation === "BOTTOM") {
+        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+        mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
+            .location[1] - playerObj.location[1])), 0]));
+        ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
         console.log("bawah kena player")
     }
     // Jika kena sisi atas dari player
-    if (collisionTop) {
-        console.log("----- 1")
-        console.log(Math.abs(ball.location[1] - playerObj.location[1]))
-        console.log((ball.height / 2.0) + (playerObj.height / 2.0))
-        console.log("----- 2")
-        console.log(ball.location[1] - playerObj.location[1])
-        console.log("----- 3")
-        console.log(Math.abs(ball.location[0] - playerObj.location[0]))
-        console.log((ball.width / 2.0) + (playerObj.width / 2.0))
-        // vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-        // vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        // mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
-        //     .location[1] - playerObj.location[1])), 0]));
-        // ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
+    if (collisionOrientation === "TOP") {
+        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+        mat4.translate(ball.mvMatrix, normalToClip([0, -(((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
+            .location[1] - playerObj.location[1])), 0]));
+        ball.location[1] = playerObj.location[1] - (ball.width / 2.0) - (playerObj.width / 2.0);
         console.log("atas kena player")
     }
-
 
     // Bola Kena Border Atas/Bawah
     if ((ball.location[1] - (ball.height / 2.0)) < 0.0 || (ball.location[1] + (ball.height / 2.0)) >= canvas.height) {
