@@ -10,7 +10,6 @@ var drawingColorBuffers = [];
 var currentlyPressedKeys = {};
 
 var playerObj;
-var ball;
 var balls = [];
 var allObj = [];
 
@@ -92,7 +91,9 @@ function setMatrixUniforms() {
 
 function initObjects() {
     playerObj = new Player([400.0, 50.0, 0.0], [0.0, 1.0, 0.0, 1.0]);
-    ball = new Ball([250.0, 250.0, 0.0], [0.0, 0.0, 1.0, 1.0]);
+    let ball = new Ball([250.0, 250.0, 0.0], [0.0, 0.0, 1.0, 1.0], 1.0, "start");
+    allObj.push(playerObj);
+    allObj.push(ball);
     balls.push(ball);
 }
 
@@ -261,53 +262,77 @@ function checkCollision() {
         playerObj.location[0] = canvas.width - (playerObj.width / 2.0);
     }
 
-    //Interaksi Antar Objek
-    let collisionOrientation = getCollisionOrientation(playerObj, ball);
-    
-    //Jika kena sisi kiri dari player
-    if (collisionOrientation === "LEFT") {
-        vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        mat4.translate(ball.mvMatrix, normalToClip([-(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
-            .location[0] - playerObj.location[0])), 0, 0]));
-        ball.location[0] = playerObj.location[0] - (ball.width / 2.0) - (playerObj.width / 2.0);
-        console.log("kiri kena player")
-    }
-    // Jika kena sisi kanan dari player
-    if (collisionOrientation === "RIGHT") {
-        vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        mat4.translate(ball.mvMatrix, normalToClip([(((ball.width / 2.0) + (playerObj.width / 2.0)) - Math.abs(ball
-            .location[0] - playerObj.location[0])), 0, 0]));
-        ball.location[0] = playerObj.location[0] + (ball.width / 2.0) + (playerObj.width / 2.0);
-        console.log("kanan kena player")
-    }
-    // Jika kena sisi bawah dari player
-    if (collisionOrientation === "BOTTOM") {
-        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        mat4.translate(ball.mvMatrix, normalToClip([0, (((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
-            .location[1] - playerObj.location[1])), 0]));
-        ball.location[1] = playerObj.location[1] + (ball.width / 2.0) + (playerObj.width / 2.0);
-        console.log("bawah kena player")
-    }
-    // Jika kena sisi atas dari player
-    if (collisionOrientation === "TOP") {
-        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-        vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-        mat4.translate(ball.mvMatrix, normalToClip([0, -(((ball.height / 2.0) + (playerObj.height / 2.0)) - Math.abs(ball
-            .location[1] - playerObj.location[1])), 0]));
-        ball.location[1] = playerObj.location[1] - (ball.width / 2.0) - (playerObj.width / 2.0);
-        console.log("atas kena player")
+    // Check Game Over
+    for (i = 1; i < allObj.length; i++) {
+        let collisionOrientation = getCollisionOrientation(playerObj, allObj[i]);
+        if (collisionOrientation !== undefined) {
+            console.log("game over")
+        }
     }
 
-    // Bola Kena Border Atas/Bawah
-    if ((ball.location[1] - (ball.height / 2.0)) < 0.0 || (ball.location[1] + (ball.height / 2.0)) >= canvas.height) {
-        vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-    }
-    // Bola Kena Border Kanan/kiri
-    if ((ball.location[0] - (ball.width / 2.0)) < 0.0 || (ball.location[0] + (ball.width / 2.0)) >= canvas.height) {
-        vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
+    //Interaksi Antar Objek
+    for (i = 0; i < allObj.length - 1; i++) {
+        let objA = allObj[i];
+        let objB = allObj[i + 1];
+        let collisionOrientation = getCollisionOrientation(objA, objB);
+        if (collisionOrientation === "LEFT") {
+            vec3.multiply(objB.velocity, [-1.0, 1.0, 1.0]);
+            vec3.multiply(objB.velocity, [1.05, 1.05, 1.0]);
+            mat4.translate(objB.mvMatrix, normalToClip([-(((objB.width / 2.0) + (objA.width / 2.0)) - Math.abs(objB
+                .location[0] - objA.location[0])), 0, 0]));
+            objB.location[0] = objA.location[0] - (objB.width / 2.0) - (objA.width / 2.0);
+        }
+        // Jika kena sisi kanan dari player
+        if (collisionOrientation === "RIGHT") {
+            vec3.multiply(objB.velocity, [-1.0, 1.0, 1.0]);
+            vec3.multiply(objB.velocity, [1.05, 1.05, 1.0]);
+            mat4.translate(objB.mvMatrix, normalToClip([(((objB.width / 2.0) + (objA.width / 2.0)) - Math.abs(objB
+                .location[0] - objA.location[0])), 0, 0]));
+            objB.location[0] = objA.location[0] + (objB.width / 2.0) + (objA.width / 2.0);
+        }
+        // Jika kena sisi bawah dari player
+        if (collisionOrientation === "BOTTOM") {
+            vec3.multiply(objB.velocity, [1.0, -1.0, 1.0]);
+            vec3.multiply(objB.velocity, [1.05, 1.05, 1.0]);
+            mat4.translate(objB.mvMatrix, normalToClip([0, (((objB.height / 2.0) + (objA.height / 2.0)) - Math.abs(objB
+                .location[1] - objA.location[1])), 0]));
+            objB.location[1] = objA.location[1] + (objB.width / 2.0) + (objA.width / 2.0);
+        }
+        // Jika kena sisi atas dari player
+        if (collisionOrientation === "TOP") {
+            vec3.multiply(objB.velocity, [1.0, -1.0, 1.0]);
+            vec3.multiply(objB.velocity, [1.05, 1.05, 1.0]);
+            mat4.translate(objB.mvMatrix, normalToClip([0, -(((objB.height / 2.0) + (objA.height / 2.0)) - Math.abs(objB
+                .location[1] - objA.location[1])), 0]));
+            objB.location[1] = objA.location[1] - (objB.width / 2.0) - (objA.width / 2.0);
+        }
+
+        // Chance of spawn Ball 25%
+        let addBall = false;
+        let random = Math.random();
+        if (random <= 0.9) addBall = true;
+        // Bola Kena Border Atas
+        if ((objB.location[1] - (objB.height / 2.0)) < 0.0) {
+            vec3.multiply(objB.velocity, [1.0, -1.0, 1.0]);
+            if (addBall) {
+                let newBall = new Ball([objB.location[0] + 1, objB.location[1] + (objB.height * 2), 0.0], [0.0, 0.0, 1.0, 1.0], 1.0, "atas");
+                balls.push(newBall);
+                allObj.push(newBall);
+            }
+        }
+        // Bola Kena Border Bawah
+        if ((objB.location[1] + (objB.height / 2.0)) >= canvas.height) {
+            vec3.multiply(objB.velocity, [1.0, -1.0, 1.0]);
+            if (addBall) {
+                // let newBall = new Ball([objB.location[0], objB.location[1] - (objB.height * 2), 0.0], [0.0, 0.0, 1.0, 1.0], 1.0, "bawah");
+                // balls.push(newBall);
+                // allObj.push(newBall);
+            }
+        }
+        // Bola Kena Border Kanan/kiri
+        if ((objB.location[0] - (objB.width / 2.0)) < 0.0 || (objB.location[0] + (objB.width / 2.0)) >= canvas.height) {
+            vec3.multiply(objB.velocity, [-1.0, 1.0, 1.0]);
+        }
     }
 }
 
@@ -351,16 +376,17 @@ var lastTime = 0;
 
 function animate() {
     var timeNow = new Date().getTime();
-    if (lastTime != 0) {
-        var elapsed = timeNow - lastTime;
-
-        mat4.translate(ball.mvMatrix, normalToClip(Object.create(ball.velocity)));
-        ball.location = vec3.add(ball.location, ball.velocity);
+    // Animate Bola
+    for (i = 0; i < balls.length; i++) {
+        let tmpBall = balls[i];
+        if (lastTime != 0) {
+            mat4.translate(tmpBall.mvMatrix, normalToClip(Object.create(tmpBall.velocity)));
+            tmpBall.location = vec3.add(tmpBall.location, tmpBall.velocity);
+        }
+        lastTime = timeNow;
+        refillBuffers(tmpBall);
     }
-    lastTime = timeNow;
-
     refillBuffers(playerObj);
-    refillBuffers(ball);
 }
 
 function drawDebug() {
@@ -409,12 +435,18 @@ class Player {
 
 // Kelas Bola untuk handle pembuatan bola
 class Ball {
-    constructor(locStart, color) {
+    constructor(locStart, color, speed, state) {
         this.location = Object.create(locStart);
         this.width = 20;
         this.height = 20;
 
-        this.velocity = [-1.0, -1.0, 0.0];
+        if (state == "start") {
+            this.velocity = [-speed, -speed, 0.0];
+        } else if (state == "atas") {
+            this.velocity = [speed, speed, 0.0];
+        } else if (state == "bawah") {
+            this.velocity = [speed, -speed, 0.0];
+        }
 
         this.mvMatrix = mat4.create();
         mat4.identity(this.mvMatrix);
