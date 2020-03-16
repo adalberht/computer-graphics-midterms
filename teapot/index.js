@@ -246,7 +246,8 @@ onload = function init() {
   render();
 };
 
-
+// Listener untuk pengubahan kamera
+// Sesuai dengan soal untuk pemidahan z, misal dari merah ke biru hanya melalui atas saja
 function registerEventListeners() {
   document.getElementById("ButtonT").onclick = toggleAnimation;
   document.addEventListener('keydown', function (event) {
@@ -272,6 +273,10 @@ function registerEventListeners() {
       var direction = keyCodeToDirection[event.keyCode];
       var newX = cameraController.x + direction.x;
       var newY = cameraController.y + direction.y;
+      let tmpZ = cameraController.z
+      console.log(newX + " " + newY + " " + cameraController.z);
+      // Jika diatas
+
       if (newX < 0) {
         newX = 0;
         cameraController.incrementZ();
@@ -279,12 +284,20 @@ function registerEventListeners() {
         newX = 2;
         cameraController.decrementZ();
       }
-      if (newY < 0) {
+      // Pergantian Z
+      // Jika diatas
+      if (newY == -1) {
         newY = 0;
-        cameraController.incrementZ();
-      } else if (newY > 2) {
-        newY = 2;
-        cameraController.decrementZ();
+        if ((tmpZ - 1 != -2)) {
+          cameraController.z--;
+        }
+        if ((tmpZ - 1 == -2)) {
+          swal("Sudah berada pada titik hijau (belakang) maksimal")
+        }
+      } else if (newY == 1) {
+        newY = 0;
+        cameraController.z++;
+        cameraController.y = newY;
       }
       cameraController.x = newX;
       cameraController.y = newY;

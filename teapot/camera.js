@@ -59,12 +59,4 @@ CameraController.prototype = {
   get up() {
     return vec3(0, 1, 0);
   },
-  incrementZ: function() {
-    this.z += 1;
-    if (this.z > 1) this.z = 1;
-  },
-  decrementZ: function() {
-    this.z -= 1;
-    if (this.z < -1) this.z = -1;
-  }
 };
