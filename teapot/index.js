@@ -27,7 +27,7 @@ var flag = true;
 
 var animationController = new AnimationController();
 
-// var cameraController = new CameraController();
+var cameraController = new CameraController();
 
 var program;
 var canvas, render, gl;
@@ -51,21 +51,9 @@ var nbezier = function(u) {
   return b;
 };
 
-onload = function init() {
-  canvas = document.getElementById("gl-canvas");
+function initializeTeapot() {
 
-  gl = WebGLUtils.setupWebGL(canvas);
-  if (!gl) {
-    alert("WebGL isn't available");
-  }
-
-  gl.viewport(0, 0, canvas.width, canvas.height);
-
-  gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
-  gl.enable(gl.DEPTH_TEST);
-
-  var sum = [0, 0, 0];
+    var sum = [0, 0, 0];
   for (var i = 0; i < 306; i++)
     for (j = 0; j < 3; j++) sum[j] += vertices[i][j];
   for (j = 0; j < 3; j++) sum[j] /= 306;
@@ -152,17 +140,6 @@ onload = function init() {
         ndata[i][j] = normalize(vec4(temp[0], temp[1], temp[2], 0));
       }
 
-    document.getElementById("ButtonX").onclick = function() {
-      axis = xAxis;
-    };
-    document.getElementById("ButtonY").onclick = function() {
-      axis = yAxis;
-    };
-    document.getElementById("ButtonZ").onclick = function() {
-      axis = zAxis;
-    };
-    document.getElementById("ButtonT").onclick = toggleAnimation;
-
     for (var i = 0; i < numDivisions; i++)
       for (var j = 0; j < numDivisions; j++) {
         points.push(data[i][j]);
@@ -185,6 +162,25 @@ onload = function init() {
         index += 6;
       }
   }
+}
+
+onload = function init() {
+  canvas = document.getElementById("gl-canvas");
+
+  gl = WebGLUtils.setupWebGL(canvas);
+  if (!gl) {
+    alert("WebGL isn't available");
+  }
+
+  gl.viewport(0, 0, canvas.width, canvas.height);
+
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+
+  gl.enable(gl.DEPTH_TEST);
+
+  initializeTeapot();
+
+  document.getElementById("ButtonT").onclick = toggleAnimation;
 
   program = initShaders(gl, "vertex-shader", "fragment-shader");
   gl.useProgram(program);
@@ -275,21 +271,13 @@ function render() {
     animationController.forward();
   }
 
-  // perspective related variables
-  var eye = vec3(0, 0, -5);
-  const at = vec3(0, 0, 0);
-  var up = vec3(0, 1, 0);
-  var near = 1.0;
-  var far = 200.0;
-  var fovy = 90.0; // Field-of-view in Y direction angle (in degrees)
-  var aspect = 1.0; // Viewport aspect ratio
-
+  
   modelViewMatrix = translate.apply(null, animationController.movementVector);
-  modelViewMatrix = mult(modelViewMatrix, lookAt(eye, at, up));
+  modelViewMatrix = mult(modelViewMatrix, lookAt(cameraController.eye, cameraController.at, cameraController.up));
 
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
-  projectionMatrix = perspective(fovy, aspect, near, far);
+  projectionMatrix = perspective(perspectiveSettings.fovy, perspectiveSettings.aspect, perspectiveSettings.near, perspectiveSettings.far);
   gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
   normalMatrix = [
