@@ -34,7 +34,7 @@ var perspectiveSettings;
 var program;
 var canvas, render, gl;
 
-var bezier = function(u) {
+var bezier = function (u) {
   var b = new Array(4);
   var a = 1 - u;
   b[3] = a * a * a;
@@ -44,7 +44,7 @@ var bezier = function(u) {
   return b;
 };
 
-var nbezier = function(u) {
+var nbezier = function (u) {
   var b = [];
   b.push(3 * u * u);
   b.push(3 * u * (2 - 3 * u));
@@ -60,7 +60,8 @@ function initializeTeapot() {
   for (j = 0; j < 3; j++) sum[j] /= 306;
   for (var i = 0; i < 306; i++)
     for (j = 0; j < 2; j++) vertices[i][j] -= sum[j] / 2;
-  for (var i = 0; i < 306; i++) for (j = 0; j < 3; j++) vertices[i][j] *= 2;
+  for (var i = 0; i < 306; i++)
+    for (j = 0; j < 3; j++) vertices[i][j] *= 2;
 
   var h = 1.0 / numDivisions;
 
@@ -248,12 +249,24 @@ onload = function init() {
 
 function registerEventListeners() {
   document.getElementById("ButtonT").onclick = toggleAnimation;
-  document.addEventListener('keydown', function(event) {
+  document.addEventListener('keydown', function (event) {
     var keyCodeToDirection = {
-      37: { y: 0, x: -1 }, //left
-      38: { y: -1, x: 0 }, //up
-      39: { y: 0, x: 1 }, //right
-      40: { y: 1, x: 0 }, //down
+      37: {
+        y: 0,
+        x: -1
+      }, //left
+      38: {
+        y: -1,
+        x: 0
+      }, //up
+      39: {
+        y: 0,
+        x: 1
+      }, //right
+      40: {
+        y: 1,
+        x: 0
+      }, //down
     };
     if (event.keyCode in keyCodeToDirection) {
       var direction = keyCodeToDirection[event.keyCode];
@@ -306,6 +319,10 @@ function render() {
   }
 
   modelViewMatrix = translate.apply(null, animationController.movementVector);
+
+  // Adjust teapot position
+  modelViewMatrix = mult(modelViewMatrix, translate(0, -1.5, 0))
+
   modelViewMatrix = mult(
     modelViewMatrix,
     lookAt(cameraController.eye, cameraController.at, cameraController.up)
