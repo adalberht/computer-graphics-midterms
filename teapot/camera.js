@@ -34,7 +34,7 @@ function CameraController() {
   ];
   this.x = 1;
   this.y = 1;
-  this.z = -1;
+  this.z = 1;
 
   this.currentPlaneCoordinates = coordinates[0];
   this.radius = 5;
