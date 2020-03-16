@@ -8,7 +8,9 @@ var points = [];
 var normals = [];
 
 var modelViewMatrix = [];
+var modelViewMatrixLoc;
 var projectionMatrix = [];
+var projectionMatrixLoc;
 
 var normalMatrix, normalMatrixLoc;
 
@@ -24,6 +26,8 @@ var dTheta = 5.0;
 var flag = true;
 
 var animationController = new AnimationController();
+
+// var cameraController = new CameraController();
 
 var program;
 var canvas, render, gl;
@@ -201,12 +205,11 @@ onload = function init() {
   gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(vNormal);
 
+  modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
+  projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
   projectionMatrix = ortho(-4, 4, -4, 4, -200, 200);
-  gl.uniformMatrix4fv(
-    gl.getUniformLocation(program, "projectionMatrix"),
-    false,
-    flatten(projectionMatrix)
-  );
+  gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
+
   normalMatrixLoc = gl.getUniformLocation(program, "normalMatrix");
 
   var lightPosition = vec4(0.0, 0.0, 20.0, 0.0);
@@ -251,15 +254,13 @@ function toggleAnimation() {
 
 function resize(canvas) {
   // Lookup the size the browser is displaying the canvas.
-  var displayWidth  = canvas.clientWidth;
+  var displayWidth = canvas.clientWidth;
   var displayHeight = canvas.clientHeight;
- 
+
   // Check if the canvas is not the same size.
-  if (canvas.width  != displayWidth ||
-      canvas.height != displayHeight) {
- 
+  if (canvas.width != displayWidth || canvas.height != displayHeight) {
     // Make the canvas the same size
-    canvas.width  = displayWidth;
+    canvas.width = displayWidth;
     canvas.height = displayHeight;
     gl.viewport(0, 0, displayWidth, displayHeight);
   }
@@ -274,21 +275,22 @@ function render() {
     animationController.forward();
   }
 
-  modelViewMatrix = mat4();
-  modelViewMatrix = mult(
-    modelViewMatrix,
-    translate.apply(null, animationController.movementVector.value)
-  );
+  // perspective related variables
+  var eye = vec3(0, 0, -5);
+  const at = vec3(0, 0, 0);
+  var up = vec3(0, 1, 0);
+  var near = 1.0;
+  var far = 200.0;
+  var fovy = 90.0; // Field-of-view in Y direction angle (in degrees)
+  var aspect = 1.0; // Viewport aspect ratio
 
-  modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0]));
-  modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0]));
-  modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1]));
+  modelViewMatrix = translate.apply(null, animationController.movementVector);
+  modelViewMatrix = mult(modelViewMatrix, lookAt(eye, at, up));
 
-  gl.uniformMatrix4fv(
-    gl.getUniformLocation(program, "modelViewMatrix"),
-    false,
-    flatten(modelViewMatrix)
-  );
+  gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+
+  projectionMatrix = perspective(fovy, aspect, near, far);
+  gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
   normalMatrix = [
     vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
@@ -298,6 +300,8 @@ function render() {
   gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix));
 
   gl.drawArrays(gl.TRIANGLES, 0, index);
-  //for(var i=0; i<index; i+=3) gl.drawArrays( gl.LINE_LOOP, i, 3 );
+
+  // for(var i=0; i<index; i+=3) gl.drawArrays( gl.LINE_LOOP, i, 3 );
+
   requestAnimFrame(render);
 }
