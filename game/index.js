@@ -315,9 +315,9 @@ function checkCollision() {
         if ((objB.location[1] - (objB.height / 2.0)) < 0.0) {
             vec3.multiply(objB.velocity, [1.0, -1.0, 1.0]);
             if (addBall) {
-                let newBall = new Ball([objB.location[0] + 1, objB.location[1] + (objB.height * 2), 0.0], [0.0, 0.0, 1.0, 1.0], 1.0, "atas");
-                balls.push(newBall);
-                allObj.push(newBall);
+                // let newBall = new Ball([objB.location[0] + 1, objB.location[1] + (objB.height * 2), 0.0], [0.0, 0.0, 1.0, 1.0], 1.0, "atas");
+                // balls.push(newBall);
+                // allObj.push(newBall);
             }
         }
         // Bola Kena Border Bawah
