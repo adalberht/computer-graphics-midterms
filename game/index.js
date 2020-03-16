@@ -52,7 +52,7 @@ function initObjects() {
   game = new Game();
   playerObj = new Player([50.0, 50.0], [0.0, 1.0, 0.0, 1.0], canvas.width, canvas.height);
   game.setPlayer(playerObj);
-  
+
   ball = new Ball([250.0, 250.0], [0.0, 0.0, 1.0, 1.0], resolution);
   game.addBall(ball);
   balls.push(ball);
@@ -112,15 +112,89 @@ function handleKeys() {
   }
 }
 
+// Mengambil bounding dari object
+function getBoundingBox(object) {
+  let minX, minY, maxX, maxY
+  let width = object.width;
+  let height = object.height;
+  let originX = object.location[0];
+  let originY = object.location[1];
+
+  minX = originX - width / 2;
+  maxX = originX + width / 2;
+  minY = originY - height / 2;
+  maxY = originY + height / 2;
+
+  // normalize min and max
+  if (minX > maxX) {
+    let temp = maxX
+    maxX = minX
+    minX = temp
+  }
+  if (minY > maxY) {
+    let temp = maxY
+    maxY = minY
+    minY = temp
+  }
+  return [
+    [minX, minY],
+    [maxX, maxY]
+  ]
+}
+
+// Berbagai fungsi helper untuk tahu tabrakan atau tidak
+// fungsi helper apakah antar objek ada titik yang overlap atau tabrakan
+function isSpanOverlap(startA, endA, startB, endB) {
+  return startA <= endB && startB <= endA
+}
+
+// Cek apakah objek a dan b tabrakan
+function isColliding(bBox_1, bBox_2) {
+  let collidesHorizontally = isSpanOverlap(
+    bBox_1[0][0], bBox_1[1][0],
+    bBox_2[0][0], bBox_2[1][0]
+  )
+  let collidesVertically = isSpanOverlap(
+    bBox_1[0][1], bBox_1[1][1],
+    bBox_2[0][1], bBox_2[1][1]
+  )
+  if (collidesHorizontally && collidesVertically) {
+    return true
+  } else {
+    return false
+  }
+}
+
+// Fungsi cek orientasi tabrakan yang mengembailkan arah tabrakan jika tabrakan dan akan mengembalikan undefined ketika obj tidak bertabrakan
+function getCollisionOrientation(objA, objB) {
+  let objABbox = getBoundingBox(objA);
+  let objBBbox = getBoundingBox(objB);
+
+  // Jika Obj tidak ada yang tabrakan tidak lanjut
+  if (!isColliding(objABbox, objBBbox)) {
+    return undefined
+  }
+
+  // Jika objB tabrakan dikiri, sisi kirinya lebih kiri dari sisi objA
+  // Sisi atas objB lebih tinggi dari objA
+  if (objBBbox[0][0] < objABbox[0][0] && objBBbox[0][1] < objABbox[1][1]) return "LEFT";
+
+  // Jika objB tabrakan di kanan, sisi kanannya lebih kanan dari sisi objA
+  // dan Sisi atas objB harus lebih tinggi dari objA
+  if (objBBbox[1][0] > objABbox[1][0] && objBBbox[0][1] < objABbox[1][1]) return "RIGHT";
+
+  // Tinggal cek apakah sisi atas objB lebih tinggi dari A jika sudah ketemu tinggal else
+  if (objBBbox[0][1] < objABbox[0][1]) {
+    return "TOP";
+  } else {
+    return "BOTTOM";
+  }
+}
+
 function checkCollision() {
   // Jika kena sisi kiri dari player
-  if (
-    Math.abs(ball.location[0] - playerObj.location[0]) <=
-      ball.width / 2.0 + playerObj.width / 2.0 &&
-    ball.location[0] - playerObj.location[0] <= 0 &&
-    Math.abs(ball.location[1] - playerObj.location[1]) <=
-      ball.height / 2.0 + playerObj.height / 2.0
-  ) {
+  let collisionOrientation = getCollisionOrientation(playerObj, ball);
+  if (collisionOrientation === "LEFT") {
     vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
     mat4.translate(
@@ -139,21 +213,15 @@ function checkCollision() {
       playerObj.location[0] - ball.width / 2.0 - playerObj.width / 2.0;
   }
   // Jika kena sisi kanan dari player
-  if (
-    Math.abs(ball.location[0] - playerObj.location[0]) <=
-      ball.width / 2.0 + playerObj.width / 2.0 &&
-    ball.location[0] - playerObj.location[0] >= 0 &&
-    Math.abs(ball.location[1] - playerObj.location[1]) <=
-      ball.height / 2.0 + playerObj.height / 2.0
-  ) {
+  if (collisionOrientation === "RIGHT") {
     vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
     mat4.translate(
       ball.mvMatrix,
       normalToClip([
         ball.width / 2.0 +
-          playerObj.width / 2.0 -
-          Math.abs(ball.location[0] - playerObj.location[0]),
+        playerObj.width / 2.0 -
+        Math.abs(ball.location[0] - playerObj.location[0]),
         0,
         0
       ])
@@ -162,13 +230,23 @@ function checkCollision() {
       playerObj.location[0] + ball.width / 2.0 + playerObj.width / 2.0;
   }
   // Jika kena sisi atas dari player
-  if (
-    Math.abs(ball.location[1] - playerObj.location[1]) <=
-      ball.height / 2.0 + playerObj.height / 2.0 &&
-    ball.location[1] - playerObj.location[1] >= 0 &&
-    Math.abs(ball.location[0] - playerObj.location[0]) <=
-      ball.width / 2.0 + playerObj.width / 2.0
-  ) {
+  if (collisionOrientation === "TOP") {
+    vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+    vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+    mat4.translate(
+      ball.mvMatrix,
+      normalToClip([
+        0,
+        - (ball.height / 2.0 +
+        playerObj.height / 2.0 -
+        Math.abs(ball.location[1] - playerObj.location[1])),
+        0
+      ])
+    );
+    ball.location[1] =
+      playerObj.location[1] - ball.width / 2.0 - playerObj.width / 2.0;
+  } 
+  if (collisionOrientation === "BOTTOM") {
     vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
     mat4.translate(
@@ -176,14 +254,13 @@ function checkCollision() {
       normalToClip([
         0,
         ball.height / 2.0 +
-          playerObj.height / 2.0 -
-          Math.abs(ball.location[1] - playerObj.location[1]),
+        playerObj.height / 2.0 -
+        Math.abs(ball.location[1] - playerObj.location[1]),
         0
       ])
     );
     ball.location[1] =
       playerObj.location[1] + ball.width / 2.0 + playerObj.width / 2.0;
-    console.log("sasa");
   }
 
   // Bola Kena Border Atas/Bawah
@@ -205,7 +282,10 @@ function checkCollision() {
 
 function draw(object) {
   initBuffers(object);
-  const { vertexBuffer, colorBuffer }  = object;
+  const {
+    vertexBuffer,
+    colorBuffer
+  } = object;
   mvMatrix = object.mvMatrix;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
@@ -225,7 +305,7 @@ function draw(object) {
     0,
     0
   );
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBuffer.numItems); 
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBuffer.numItems);
 }
 
 function drawScene() {
@@ -287,7 +367,7 @@ function registerEventListeners() {
   document.onkeyup = handleKeyUp;
 }
 
-window.onload = function() {
+window.onload = function () {
   canvas = document.getElementById("canvas");
   resolution = [canvas.width, canvas.height, 1.0];
   initObjects();
