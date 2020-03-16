@@ -29,6 +29,8 @@ var animationController = new AnimationController();
 
 var cameraController = new CameraController();
 
+var perspectiveSettings;
+
 var program;
 var canvas, render, gl;
 
@@ -52,8 +54,7 @@ var nbezier = function(u) {
 };
 
 function initializeTeapot() {
-
-    var sum = [0, 0, 0];
+  var sum = [0, 0, 0];
   for (var i = 0; i < 306; i++)
     for (j = 0; j < 3; j++) sum[j] += vertices[i][j];
   for (j = 0; j < 3; j++) sum[j] /= 306;
@@ -164,26 +165,19 @@ function initializeTeapot() {
   }
 }
 
-onload = function init() {
-  canvas = document.getElementById("gl-canvas");
-
+function initializeWebGL(canvas) {
   gl = WebGLUtils.setupWebGL(canvas);
   if (!gl) {
     alert("WebGL isn't available");
   }
-
   gl.viewport(0, 0, canvas.width, canvas.height);
-
   gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
   gl.enable(gl.DEPTH_TEST);
-
-  initializeTeapot();
-
-  document.getElementById("ButtonT").onclick = toggleAnimation;
-
   program = initShaders(gl, "vertex-shader", "fragment-shader");
   gl.useProgram(program);
+}
+
+function drawScene() {
 
   var vBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -239,13 +233,54 @@ onload = function init() {
     flatten(lightPosition)
   );
   gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
+}
 
+onload = function init() {
+  canvas = document.getElementById("gl-canvas");
+  perspectiveSettings = new PerspectiveSettings(canvas);
+  initializeWebGL(canvas);
+  initializeTeapot();
+  drawScene();
+  registerEventListeners();
   render();
 };
 
+
+function registerEventListeners() {
+  document.getElementById("ButtonT").onclick = toggleAnimation;
+  document.addEventListener('keydown', function(event) {
+    var keyCodeToDirection = {
+      37: { y: 0, x: -1 }, //left
+      38: { y: -1, x: 0 }, //up
+      39: { y: 0, x: 1 }, //right
+      40: { y: 1, x: 0 }, //down
+    };
+    if (event.keyCode in keyCodeToDirection) {
+      var direction = keyCodeToDirection[event.keyCode];
+      var newX = cameraController.x + direction.x;
+      var newY = cameraController.y + direction.y;
+      if (newX < 0) {
+        newX = 0;
+        cameraController.incrementZ();
+      } else if (newX > 2) {
+        newX = 2;
+        cameraController.decrementZ();
+      }
+      if (newY < 0) {
+        newY = 0;
+        cameraController.incrementZ();
+      } else if (newY > 2) {
+        newY = 2;
+        cameraController.decrementZ();
+      }
+      cameraController.x = newX;
+      cameraController.y = newY;
+    }
+  });
+}
+
 function toggleAnimation() {
   animationController.toggleDisabled();
-  flag = !flag;
 }
 
 function resize(canvas) {
@@ -266,18 +301,24 @@ function render() {
   resize(gl.canvas);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  if (flag) theta[axis] += 0.5;
   if (!animationController.disabled) {
     animationController.forward();
   }
 
-  
   modelViewMatrix = translate.apply(null, animationController.movementVector);
-  modelViewMatrix = mult(modelViewMatrix, lookAt(cameraController.eye, cameraController.at, cameraController.up));
+  modelViewMatrix = mult(
+    modelViewMatrix,
+    lookAt(cameraController.eye, cameraController.at, cameraController.up)
+  );
 
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
-  projectionMatrix = perspective(perspectiveSettings.fovy, perspectiveSettings.aspect, perspectiveSettings.near, perspectiveSettings.far);
+  projectionMatrix = perspective(
+    perspectiveSettings.fovy,
+    perspectiveSettings.aspect,
+    perspectiveSettings.near,
+    perspectiveSettings.far
+  );
   gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
   normalMatrix = [
@@ -288,8 +329,6 @@ function render() {
   gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix));
 
   gl.drawArrays(gl.TRIANGLES, 0, index);
-
-  // for(var i=0; i<index; i+=3) gl.drawArrays( gl.LINE_LOOP, i, 3 );
 
   requestAnimFrame(render);
 }
