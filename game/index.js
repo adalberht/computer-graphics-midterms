@@ -6,9 +6,6 @@ var currentlyPressedKeys = {};
 
 var game;
 
-var playerObj;
-var ball;
-
 function initializeShaders(gl) {
   var shaderProgram = initShaders(gl, "vertex-shader", "fragment-shader");
   gl.useProgram(shaderProgram);
@@ -35,11 +32,21 @@ function initializeShaders(gl) {
   gl.enable(gl.DEPTH_TEST);
 }
 
-function initObjects() {
+function initMenu() {
+  Swal.fire({
+    icon: 'info',
+    text: 'Welcome to Dodge Ball Game!',
+    showCancelButton: true,
+    confirmButtonText: 'Start Game',
+    cancelButtonText: 'Demo',
+  }).then(function() {
+    game.start();
+  });
+}  
+
+function initGame() {
   game = new Game();
-  playerObj = game.player;
-  ball = game.balls[0];
-  game.start();
+  initMenu();
 }
 
 function initBuffers(object) {
@@ -124,7 +131,7 @@ function tick() {
         confirmButtonText: "Start a new game",
         onClose: function() {
           console.log('Closed game over!!!');
-          initObjects();
+          initGame();
         }
       });
     })
@@ -156,9 +163,10 @@ function registerEventListeners() {
   document.onkeyup = handleKeyUp;
 }
 
+
 window.onload = function() {
   canvas = document.getElementById("canvas");
-  initObjects();
+  initGame();
   initGL();
   registerEventListeners();
   tick();
