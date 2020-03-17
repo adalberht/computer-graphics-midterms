@@ -84,7 +84,7 @@ class Game {
     for (var ball of this.balls) {
       let collisionOrientation = getCollisionOrientation(this.player, ball);
       if (collisionOrientation !== undefined) {
-        console.log(collisionOrientation, this.player, ball);
+        console.log(collisionOrientation);
         onPlayerCollision();
       }
     }
@@ -92,9 +92,8 @@ class Game {
     for (var i = 0; i < this.balls.length ; ++i) {
       const ball = this.balls[i];
       ball.checkBorderCollision();
-      for (var j = 0; j < this.balls.length; ++j) {
-        if (j == i) continue;
-        this.balls[i].checkCollision(this.balls[j]);
+      for (var j = i + 1; j < this.balls.length; ++j) {        
+        ball.checkCollision(this.balls[j]);
       }
     }
 

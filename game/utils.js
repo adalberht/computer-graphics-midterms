@@ -69,11 +69,7 @@ function isColliding(bBox_1, bBox_2) {
     bBox_2[0][1],
     bBox_2[1][1]
   );
-  if (collidesHorizontally && collidesVertically) {
-    return true;
-  } else {
-    return false;
-  }
+  return (collidesHorizontally && collidesVertically);
 }
 
 // Fungsi cek orientasi tabrakan yang mengembailkan arah tabrakan jika tabrakan dan akan mengembalikan undefined ketika obj tidak bertabrakan

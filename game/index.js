@@ -113,9 +113,7 @@ function updateScore() {
 
 function tick() {
   if (game.shouldTick()) {
-    game.animateObjects();
     game.handleKeyPresses(currentlyPressedKeys);
-    drawScene();
     game.checkCollision(function() {
       game.end();
       Swal.fire({
@@ -128,7 +126,9 @@ function tick() {
           initGame();
         }
       });
-    })
+    });
+    game.animateObjects();
+    drawScene();
     updateScore();
   } else {
     drawScene();

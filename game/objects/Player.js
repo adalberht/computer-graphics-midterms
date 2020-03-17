@@ -60,4 +60,6 @@ class Player extends GameObject {
   onRightBorderReached() {
     console.log("Player has reached right border");
   }
+
+  
 }
