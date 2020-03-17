@@ -89,35 +89,14 @@ class Game {
       }
     }
 
-
-    // let collisionOrientation = getCollisionOrientation(this.player, ball);
-    // if (collisionOrientation === "LEFT") {
-    //   ball.multiplyVelocity([-1.0, 1.0]);
-    //   ball.multiplyVelocity([1.05, 1.05]);
-
-    //   ball.location[0] =
-    //     this.player.location[0] - ball.width / 2.0 - this.player.width / 2.0;
-    // }
-    // // Jika kena sisi kanan dari player
-    // if (collisionOrientation === "RIGHT") {
-    //   ball.multiplyVelocity([-1.0, 1.0]);
-    //   ball.multiplyVelocity([1.05, 1.05]);
-    //   ball.location[0] =
-    //     this.player.location[0] + ball.width / 2.0 + this.player.width / 2.0;
-    // }
-    // // Jika kena sisi atas dari player
-    // if (collisionOrientation === "TOP") {
-    //   ball.multiplyVelocity([1.0, -1.0]);
-    //   ball.multiplyVelocity([1.05, 1.05]);
-    //   ball.location[1] =
-    //     this.player.location[1] - ball.width / 2.0 - this.player.width / 2.0;
-    // }
-    // if (collisionOrientation === "BOTTOM") {
-    //   ball.multiplyVelocity([1.0, -1.0]);
-    //   ball.multiplyVelocity([1.05, 1.05]);
-    //   ball.location[1] =
-    //     this.player.location[1] + ball.width / 2.0 + this.player.width / 2.0;
-    // }
+    for (var i = 0; i < this.balls.length ; ++i) {
+      const ball = this.balls[i];
+      ball.checkBorderCollision();
+      for (var j = 0; j < this.balls.length; ++j) {
+        if (j == i) continue;
+        this.balls[i].checkCollision(this.balls[j]);
+      }
+    }
 
     const newBalls = [];
     for (var ball of this.balls) {
