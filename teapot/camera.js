@@ -1,6 +1,6 @@
 function PerspectiveSettings(canvas) {
   return {
-    near: 1.0,
+    near: 0.005,
     far: 200.0,
     fovy: 90.0, // Field-of-view in Y direction angle (in degrees)
     get aspect() {
