@@ -1,6 +1,7 @@
 "use strict";
 
 var numDivisions = 3;
+var cameraBefore;
 
 var index = 0;
 
@@ -29,10 +30,12 @@ var animationController = new AnimationController();
 
 var cameraController = new CameraController();
 
+var perspectiveSettings;
+
 var program;
 var canvas, render, gl;
 
-var bezier = function(u) {
+var bezier = function (u) {
   var b = new Array(4);
   var a = 1 - u;
   b[3] = a * a * a;
@@ -42,7 +45,7 @@ var bezier = function(u) {
   return b;
 };
 
-var nbezier = function(u) {
+var nbezier = function (u) {
   var b = [];
   b.push(3 * u * u);
   b.push(3 * u * (2 - 3 * u));
@@ -52,14 +55,14 @@ var nbezier = function(u) {
 };
 
 function initializeTeapot() {
-
-    var sum = [0, 0, 0];
+  var sum = [0, 0, 0];
   for (var i = 0; i < 306; i++)
     for (j = 0; j < 3; j++) sum[j] += vertices[i][j];
   for (j = 0; j < 3; j++) sum[j] /= 306;
   for (var i = 0; i < 306; i++)
     for (j = 0; j < 2; j++) vertices[i][j] -= sum[j] / 2;
-  for (var i = 0; i < 306; i++) for (j = 0; j < 3; j++) vertices[i][j] *= 2;
+  for (var i = 0; i < 306; i++)
+    for (j = 0; j < 3; j++) vertices[i][j] *= 2;
 
   var h = 1.0 / numDivisions;
 
@@ -164,26 +167,19 @@ function initializeTeapot() {
   }
 }
 
-onload = function init() {
-  canvas = document.getElementById("gl-canvas");
-
+function initializeWebGL(canvas) {
   gl = WebGLUtils.setupWebGL(canvas);
   if (!gl) {
     alert("WebGL isn't available");
   }
-
   gl.viewport(0, 0, canvas.width, canvas.height);
-
   gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
   gl.enable(gl.DEPTH_TEST);
-
-  initializeTeapot();
-
-  document.getElementById("ButtonT").onclick = toggleAnimation;
-
   program = initShaders(gl, "vertex-shader", "fragment-shader");
   gl.useProgram(program);
+}
+
+function drawScene() {
 
   var vBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -239,13 +235,183 @@ onload = function init() {
     flatten(lightPosition)
   );
   gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
+}
 
+onload = function init() {
+  msgAlert("Welcome", "Untuk mengubah kamera bisa dilakukan dengan <b>Arrow pada keyboard</b>, untuk menghentikan animasi ketuk tombol <b>Toogle Animation</b>", "info");
+  canvas = document.getElementById("gl-canvas");
+  perspectiveSettings = new PerspectiveSettings(canvas);
+  initializeWebGL(canvas);
+  initializeTeapot();
+  drawScene();
+  registerEventListeners();
   render();
 };
 
+// Menampilkan alert
+function msgAlert(title, msg, icon) {
+  Swal.fire({
+    title: title,
+    html: msg,
+    icon: icon,
+    confirmButtonText: 'Continue'
+  })
+}
+
+
+function registerEventListeners() {
+  document.getElementById("ButtonT").onclick = toggleAnimation;
+  document.addEventListener('keydown', function (event) {
+    var keyCodeToDirection = {
+      37: {
+        y: 0,
+        x: -1
+      }, //left
+      38: {
+        y: -1,
+        x: 0
+      }, //up
+      39: {
+        y: 0,
+        x: 1
+      }, //right
+      40: {
+        y: 1,
+        x: 0
+      }, //down
+    };
+    if (event.keyCode in keyCodeToDirection) {
+      var direction = keyCodeToDirection[event.keyCode];
+      var oldX = cameraController.x;
+      var oldY = cameraController.y;
+      var newX = oldX + direction.x;
+      var newY = oldY + direction.y;
+
+      // Handle tidak bisa pindah Horizontal
+      if (oldY == 0 || oldY == 2) {
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal di Pojok", "Untuk mengganti Z Horizontal selain di layer tengah silahkan ke titik Kanan Pusat atau Kiri Pusat", "error");
+        }
+      }
+
+
+      // Handle tidak bisa pindah Vertikal jika dipojok
+      if (oldX == 0 || oldX == 2) {
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Tidak Bisa Ganti Dimensi Vertikal di Pojok", "Untuk mengganti Z Vertikal silahkan ke titik tengah atas, atau bawah", "error");
+        }
+      }
+
+      // Layer Merah (Paling depan)
+      // Berpindah secara vertikal
+      if (cameraController.z == 1) {
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah bisa dilakukan di titik tengah atas dan tengah bawah. Arrow <b>Atas Akan ke Layer Biru (Belakang)</b> dan Arrow <b>Bawah ke Layer Merah (Depan)</b>", "info");
+          cameraController.changeZ(false);
+        }
+
+        // Horizontal
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert(
+            "Informasi:", 
+            "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan <b> Z Vertikal (Tengah Atas dan Tengah Bawah).</b> Arrow <b>Atas </b> akan ke <b>Layer Biru (Belakang) </b> dan Arrow <b>Bawah</b> akan ke <b>Layer Merah (Depan)</b>", 
+            "info");
+          cameraController.changeZ(false);
+        }
+      }
+
+      // Layer Hijau (Tengah)
+      if (cameraController.z == 0) {
+        // Saat Atas dan bawah pindah sesuai informasi dari alert 
+        // Panah Atas(y--) akan ke layer biru Panah Bawah(y++) ke layer merah
+        // Tengah Atas(1,0,0)
+        if (oldX == 1) {
+          if (oldY == 0) {
+            // Handle Arrow Atas
+            if (newY < 0) { // Ke Biru
+              newY = oldY;
+              cameraController.changeZ(false);
+              msgAlert("Informasi:", 
+              "Karena melihat perspektif perpindahan dari depan maka di layer biru perpindahan horizontal terasa <b>inverted</b>", 
+              "warning");
+            } else if (newY == 1) { // Ke Merah
+              newY = 0;
+              cameraController.changeZ(true);
+            }
+          }
+
+          // Tengah Bawah(1,2,0)
+          if (oldY == 2) {
+            // Handle Arrow Atas
+            if (newY == 1) { // Ke Merah
+              newY = 2;
+              cameraController.changeZ(false);
+            } else if (newY > 2) { // Ke Biru
+              newY = oldY;
+              cameraController.changeZ(true);
+              msgAlert("Informasi:", 
+              "Karena melihat perspektif perpindahan dari depan maka di layer biru perpindahan horizontal terasa <b>inverted</b>", 
+              "warning");
+            }
+          }
+        }
+
+        // Saat Horizontal tidak bisa di tengah, karena kalau bisa tidak bisa ke titik pusat hijau
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal di Layer Tengah", "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan Z <b>Vertikal</b> Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "error");
+        }
+      }
+
+
+      // Layer Biru 
+      if (cameraController.z == -1) {
+        // Vertikal
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal pada Layer Tengah, bisa dilakukan di titik tengah atas dan tengah bawah. Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          cameraController.changeZ(false);
+        }
+
+        // Horizontal
+        if (newX < 0 || newX > 2) {
+          if (newX < 0) newX = 2;
+          if (newX > 2) newX = 0;
+          msgAlert(
+            "Informasi:", 
+            "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan <b> Z Vertikal (Tengah Atas dan Tengah Bawah).</b> Arrow <b>Atas </b> akan ke <b>Layer Biru (Belakang) </b> dan Arrow <b>Bawah</b> akan ke <b>Layer Merah (Depan)</b>", 
+            "info");
+          cameraController.changeZ(false);
+        }
+      }
+
+      // Label Naming Kamera X
+      if (newX == 0) document.getElementById("camera-info").innerHTML = "Kiri";
+      else if (newX == 1) document.getElementById("camera-info").innerHTML = "Tengah";
+      else if (newX == 2) document.getElementById("camera-info").innerHTML = "Kanan";
+
+      // Label Naming Kamera Y
+      if (newY == 0) document.getElementById("camera-info").innerHTML += " - Atas";
+      else if (newY == 1) document.getElementById("camera-info").innerHTML += " - Tengah";
+      else if (newY == 2) document.getElementById("camera-info").innerHTML += " - Bawah";
+
+      // Label Handling Layer (Z)
+      if (cameraController.z == -1) document.getElementById("layer-info").innerHTML = "Biru (Belakang)";
+      else if (cameraController.z == 0) document.getElementById("layer-info").innerHTML = "Hijau (Tengah)";
+      else if (cameraController.z == 1) document.getElementById("layer-info").innerHTML = "Merah (Depan)";
+
+      cameraController.x = newX;
+      cameraController.y = newY;
+    }
+  });
+}
+
 function toggleAnimation() {
   animationController.toggleDisabled();
-  flag = !flag;
 }
 
 function resize(canvas) {
@@ -266,18 +432,28 @@ function render() {
   resize(gl.canvas);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  if (flag) theta[axis] += 0.5;
   if (!animationController.disabled) {
     animationController.forward();
   }
 
-  
   modelViewMatrix = translate.apply(null, animationController.movementVector);
-  modelViewMatrix = mult(modelViewMatrix, lookAt(cameraController.eye, cameraController.at, cameraController.up));
+
+  // Adjust teapot position
+  modelViewMatrix = mult(modelViewMatrix, translate(0, -1.5, 0))
+
+  modelViewMatrix = mult(
+    modelViewMatrix,
+    lookAt(cameraController.eye, cameraController.at, cameraController.up)
+  );
 
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
-  projectionMatrix = perspective(perspectiveSettings.fovy, perspectiveSettings.aspect, perspectiveSettings.near, perspectiveSettings.far);
+  projectionMatrix = perspective(
+    perspectiveSettings.fovy,
+    perspectiveSettings.aspect,
+    perspectiveSettings.near,
+    perspectiveSettings.far
+  );
   gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
   normalMatrix = [
@@ -288,8 +464,6 @@ function render() {
   gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix));
 
   gl.drawArrays(gl.TRIANGLES, 0, index);
-
-  // for(var i=0; i<index; i+=3) gl.drawArrays( gl.LINE_LOOP, i, 3 );
 
   requestAnimFrame(render);
 }

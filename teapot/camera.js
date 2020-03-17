@@ -1,3 +1,14 @@
+function PerspectiveSettings(canvas) {
+  return {
+    near: 1.0,
+    far: 200.0,
+    fovy: 90.0, // Field-of-view in Y direction angle (in degrees)
+    get aspect() {
+      return canvas.width / canvas.height;
+    }
+  };
+}
+
 function CameraController() {
   var coordinates = [
     // Red Coordinates
@@ -21,15 +32,44 @@ function CameraController() {
       [vec3(-1, -1, 1), vec3(0, -1, 1), vec3(1, -1, 1)]
     ]
   ];
-  this.at = vec3(0, 0, 0);
-  this.up = vec3(0, 1, 0);
-  this.eye = vec3(0, 0, -5);
+  this.x = 1;
+  this.y = 1;
+  this.z = 1;
+
+  this.currentPlaneCoordinates = coordinates[0];
+  this.radius = 5;
   return this;
 }
 
-const perspectiveSettings = {
-  near: 1.0,
-  far: 200.0,
-  fovy: 90.0, // Field-of-view in Y direction angle (in degrees)
-  aspect: 1.0 // Viewport aspect ratio
+CameraController.prototype = {
+  get eye() {
+    var cameraPosition = this.currentPlaneCoordinates[this.y][this.x];
+    var [x, y, z] = cameraPosition;
+    var phi = Math.atan2(y, x);
+    var theta = Math.atan2(Math.sqrt(x * x + y * y), x);
+
+    x = this.radius * Math.sin(theta) * Math.cos(phi);
+    y = this.radius * Math.sin(theta) * Math.sin(phi);
+    z = this.z * this.radius;
+    return vec3(x, y, z);
+  },
+  get at() {
+    return vec3();
+  },
+  get up() {
+    return vec3(0, 1, 0);
+  },
+  changeZ: function (isRotateFrontFromMid) {
+    if (this.z == 1) {
+      this.z = 0;
+    } else if (this.z == 0) {
+      if (isRotateFrontFromMid) {
+        this.z = 1;
+      } else {
+        this.z = -1;
+      }
+    } else {
+      this.z = 0;
+    }
+  },
 };
