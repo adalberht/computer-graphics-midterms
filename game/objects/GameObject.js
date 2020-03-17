@@ -1,3 +1,4 @@
+// Superclass dari Ball dan Player untuk mengkomposisi atribut-atribut dan behavior yang sama
 class GameObject {
   constructor({
     startLocation,
@@ -18,6 +19,7 @@ class GameObject {
     initBuffers(this);
   }
 
+  // Getter property untuk kepentingan drawing di WebGL
   get vertices() {
     const { location, width, height } = this;
     const p1 = location;
@@ -28,11 +30,13 @@ class GameObject {
     return vertex;
   }
 
+  // Fungsi ini dipanggil saat ada perubahan properties di canvas (untuk keperluan responsive)
   updateCanvasProperties(canvas) {
     this.canvasWidth = canvas.width;
     this.canvasHeight = canvas.height;
   }
 
+  // Fungsi untuk melakukan perkalian kecepatan objek
   multiplyVelocity(multiplier) {
     if (typeof(this.velocity) === typeof([])) {
       this.velocity = mult(this.velocity, multiplier);

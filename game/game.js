@@ -47,7 +47,7 @@ class Game {
       const vx = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
       const vy = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
       self.player.multiplyVelocity([vx, vy]);
-    }, 500);
+    }, 250);
   }
 
   endDemo() {
@@ -120,7 +120,7 @@ class Game {
       // Down cursor key
       player.moveDown();
     }
-    player.normalize();
+    player.preventOutOfBound();
   }
 
   checkCollision(onPlayerCollision) {
@@ -155,7 +155,7 @@ class Game {
     if (!this.demo) return;
     var player = this.player;
     player.location = add(player.location, player.velocity);
-    player.normalize();
+    player.preventOutOfBound();
   }
 
   animateObjects() {

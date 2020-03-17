@@ -1,5 +1,4 @@
-// Kelas yang dibutuhkan
-// Kelas Player untuk pembuatan player
+// Kelas Player untuk pembuatan player objek di dalam game
 class Player extends GameObject {
   constructor(startLocation, color, canvasWidth, canvasHeight) {
     var baseVelocity = 8.0;
@@ -15,7 +14,8 @@ class Player extends GameObject {
     this.baseVelocity = baseVelocity;
   }
 
-  normalize() {
+  // Fungsi untuk mencegah Player keluar dari canvas
+  preventOutOfBound() {
     // Check top border
     if (this.location[1] <= 0) {
       this.location[1] = 0;
@@ -35,36 +35,33 @@ class Player extends GameObject {
     }
   }
 
+  // Fungsi yang dipanggil saat User menekan arrow up
   moveUp() {
     this.location = add(this.location, vec2(0, -this.baseVelocity));
   }
 
+  // Fungsi yang dipanggil saat User menekan arrow kanan
   moveRight() {
     this.location = add(this.location, vec2(this.baseVelocity, 0));
   }
 
+  // Fungsi yang dipanggil saat User menekan arrow bawah
   moveDown() {
     this.location = add(this.location, vec2(0, this.baseVelocity));
   }
 
+  // Fungsi yang dipanggil saat User menekan arrow kiri
   moveLeft() {
     this.location = add(this.location, vec2(-this.baseVelocity, 0));
     
   }
 
-  onTopBorderReached() {
-    console.log("Player has reached top border");
-  }
+  onTopBorderReached() {}
 
-  onBottomBorderReached() {
-    console.log("Player has reached bottom border");
-  }
+  onBottomBorderReached() {}
 
-  onLeftBorderReached() {
-    console.log("Player has reached left border");
-  }
+  onLeftBorderReached() {}    
 
-  onRightBorderReached() {
-    console.log("Player has reached right border");
-  }
+  onRightBorderReached() {}
+
 }
