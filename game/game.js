@@ -22,7 +22,6 @@ class Game {
 
   addBall(ball) {
     this.balls.push(ball);
-    initBuffers(ball);
   }
 
   start() {

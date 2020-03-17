@@ -19,19 +19,15 @@ class Player extends GameObject {
     // Check top border
     if (this.location[1] <= 0) {
       this.location[1] = 0;
-      this.onTopBorderReached();
     }
     if (this.location[0] + this.width >= this.canvasWidth) {
       this.location[0] = this.canvasWidth - this.width;
-      this.onRightBorderReached();
     }
     if (this.location[1] + this.height >= this.canvasHeight) {
       this.location[1] = this.canvasHeight - this.height;
-      this.onBottomBorderReached();
     }
     if (this.location[0] <= 0) {
       this.location[0] = 0;
-      this.onLeftBorderReached();
     }
   }
 
@@ -55,13 +51,4 @@ class Player extends GameObject {
     this.location = add(this.location, vec2(-this.baseVelocity, 0));
     
   }
-
-  onTopBorderReached() {}
-
-  onBottomBorderReached() {}
-
-  onLeftBorderReached() {}    
-
-  onRightBorderReached() {}
-
 }
