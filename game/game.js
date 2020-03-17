@@ -5,7 +5,7 @@ class Game {
     this.started = false;
     this.score = 0.0;
     this.gameOver = false;
-    this.player =
+    player =
       player ||
       new Player(
         [50.0, 50.0],
@@ -14,25 +14,37 @@ class Game {
         canvas.height
       );
     initialBall = initialBall || new Ball([250.0, 250.0], [0.0, 0.0, 1.0, 1.0]);
+    this.player = player;
     this.balls = [initialBall];
+
   }
 
   addBall(ball) {
     this.balls.push(ball);
+    initBuffers(ball);
   }
 
   start() {
     this.started = true;
     this.increaseScoreOverTime();
+    this.spawnRandomBallOverTime();
   }
 
   end() {
     this.gameOver = true;
     clearInterval(this.updateScoreIntervalID);
+    clearInterval(this.spawnRandomBallIntervalID);
   }
 
   shouldTick() {
     return this.started && !this.gameOver;
+  }
+
+  spawnRandomBallOverTime() {
+    var self = this;
+    this.spawnRandomBallIntervalID = setInterval(function() {
+      self.addBall(new Ball());
+    }, 2000);
   }
 
   increaseScoreOverTime() {
@@ -69,7 +81,6 @@ class Game {
   }
 
   checkCollision(onPlayerCollision) {
-    // Jika kena sisi kiri dari player
     for (var ball of this.balls) {
       let collisionOrientation = getCollisionOrientation(this.player, ball);
       if (!!collisionOrientation) {
@@ -105,9 +116,24 @@ class Game {
         this.player.location[1] + ball.width / 2.0 + this.player.width / 2.0;
     }
 
+    const newBalls = [];
     for (var ball of this.balls) {
-      ball.checkForWallCollision();
+      const result = ball.checkBorderCollision();
+      if (result !== WallCollisionResultEnum.none) {
+        const clone = ball.clone();
+        if (result === WallCollisionResultEnum.vertical) {
+          ball.onVerticalBorderCollision();
+          clone.multiplyVelocity([1.0, -1.0]);
+        } else if (result === WallCollisionResultEnum.horizontal) {
+          ball.onHorizontalBorderCollision();
+          clone.multiplyVelocity([-1.0, 1.0]);
+        }
+        newBalls.push(clone);
+      }
     }
+    // for (var newBall of newBalls) {
+    //   this.addBall(newBall);
+    // }
   }
 
   animateObjects() {

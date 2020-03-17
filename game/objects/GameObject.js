@@ -15,6 +15,7 @@ class GameObject {
     this.velocity = velocity;
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
+    initBuffers(this);
   }
 
   get vertices() {
@@ -38,5 +39,9 @@ class GameObject {
     } else {
       this.velocity *= multiplier;
     }
+  }
+
+  get colors() {
+    return [...this.color, ...this.color, ...this.color, ...this.color];
   }
 }

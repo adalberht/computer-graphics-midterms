@@ -51,27 +51,9 @@ function initGame() {
 
 function initBuffers(object) {
   object.vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexBuffer);
-
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(object.vertices),
-    gl.STATIC_DRAW
-  );
   object.vertexBuffer.itemSize = 2;
   object.vertexBuffer.numItems = 4;
-
-  object.colors = [];
-  for (var i = 0; i < 4; i++) {
-    object.colors = object.colors.concat(object.color);
-  }
   object.colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, object.colorBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(object.colors),
-    gl.STATIC_DRAW
-  );
   object.colorBuffer.itemSize = 4;
   object.colorBuffer.numItems = 1;
 }
@@ -85,7 +67,6 @@ function handleKeyUp(event) {
 }
 
 function draw(object) {
-  initBuffers(object);
   const { vertexBuffer, colorBuffer } = object;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
@@ -96,7 +77,18 @@ function draw(object) {
     0,
     0
   );
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(object.vertices),
+    gl.STATIC_DRAW
+  );
+
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(object.colors),
+    gl.STATIC_DRAW
+  );
   gl.vertexAttribPointer(
     gl.program.vertexColorAttribute,
     colorBuffer.itemSize,
@@ -121,7 +113,9 @@ function updateScore() {
 
 function tick() {
   if (game.shouldTick()) {
+    game.animateObjects();
     game.handleKeyPresses(currentlyPressedKeys);
+    drawScene();
     game.checkCollision(function() {
       game.end();
       Swal.fire({
@@ -135,10 +129,10 @@ function tick() {
         }
       });
     })
-    game.animateObjects();
+    updateScore();
+  } else {
+    drawScene();
   }
-  drawScene();
-  updateScore();
   requestAnimFrame(tick);
 }
 
@@ -155,7 +149,6 @@ function onCanvasSizeChanged() {
 function initGL() {
   gl = WebGLUtils.setupWebGL(canvas);
   initializeShaders(gl);
-  resizeCanvasToDisplaySize(canvas, onCanvasSizeChanged);
 }
 
 function registerEventListeners() {
@@ -166,8 +159,9 @@ function registerEventListeners() {
 
 window.onload = function() {
   canvas = document.getElementById("canvas");
-  initGame();
   initGL();
+  initGame();
+  resizeCanvasToDisplaySize(canvas, onCanvasSizeChanged);
   registerEventListeners();
   tick();
 };

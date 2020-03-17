@@ -7,7 +7,9 @@ const WallCollisionResultEnum = Object.freeze({
 // Kelas Bola untuk handle pembuatan bola
 class Ball extends GameObject {
   constructor(startLocation, color, velocity) {
-    velocity = velocity || [-1.0, -1.0];
+    color = color || [1.0, 0.0, 0.0, 1.0];
+    startLocation = startLocation || [0, 0];
+    velocity = velocity || [1.0, -4.0];
     const width = 20;
     const height = 20;
     super({ startLocation, color, width, height, velocity });
@@ -19,39 +21,37 @@ class Ball extends GameObject {
 
   onVerticalBorderCollision() {
     this.multiplyVelocity([1.0, -1.0]);
-    return WallCollisionResultEnum.vertical;
+    this.multiplyVelocity([1.05, 1.05]);
   }
 
   onHorizontalBorderCollision() {
     this.multiplyVelocity([-1.0, 1.0]);
-    return WallCollisionResultEnum.horizontal;
+    this.multiplyVelocity([1.05, 1.05]);
   }
 
-  checkForWallCollision() {
+  checkBorderCollision() {
     // Bola Kena Border Atas/Bawah
     if (
       this.location[1] - this.height / 2.0 < 0.0 ||
       this.location[1] + this.height / 2.0 >= canvas.height
     ) {
-      return this.onVerticalBorderCollision();
+      return WallCollisionResultEnum.vertical;
     }
     // Bola Kena Border Kanan/kiri
     if (
       this.location[0] - this.width / 2.0 < 0.0 ||
       this.location[0] + this.width / 2.0 >= canvas.width
     ) {
-      return this.onHorizontalBorderCollision();
+      return WallCollisionResultEnum.horizontal;
     }
     return WallCollisionResultEnum.none;
   }
 
-  cloneWith({ location, color, width, height, velocity }) {
-    return new Ball({
-      startLocation: location || this.location,
-      color: color || this.color,
-      width: width || this.width,
-      height: height || this.height,
-      velocity: velocity || this.velocity
-    });
+  clone() {
+    return new Ball(
+      this.location,
+      this.color,
+      this.velocity,
+    );
   }
 }
