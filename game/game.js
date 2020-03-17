@@ -47,7 +47,7 @@ class Game {
       const vx = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
       const vy = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
       self.player.multiplyVelocity([vx, vy]);
-    }, 250);
+    }, 500);
   }
 
   endDemo() {
