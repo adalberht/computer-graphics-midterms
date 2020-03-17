@@ -14,7 +14,7 @@ class Game {
         canvas.width,
         canvas.height
       );
-    initialBall = initialBall || new Ball([250.0, 250.0], [0.0, 0.0, 1.0, 1.0]);
+    initialBall = initialBall || new Ball([250.0, 250.0], [1.0, 0.0, 0.0, 1.0]);
     this.player = player;
     this.balls = [initialBall];
 
@@ -41,7 +41,7 @@ class Game {
     this.start();
     this.demo = true;
     var self = this;
-    this.demoIntervalID = setInterval(function() {
+    this.demoIntervalID = setInterval(function () {
       if (self.player.velocity[0] === 0) self.player.velocity[0] = self.player.baseVelocity;
       if (self.player.velocity[1] === 0) self.player.velocity[1] = self.player.baseVelocity;
       const vx = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
@@ -62,14 +62,32 @@ class Game {
 
   spawnRandomBallOverTime() {
     var self = this;
-    this.spawnRandomBallIntervalID = setInterval(function() {
-      self.addBall(new Ball());
+    this.spawnRandomBallIntervalID = setInterval(function () {
+      // Randomizer spawn ball 0(kiri atas), 1 (kanan bawah), 2(kanan atas), 3(kiri atas)
+      switch (Math.floor(Math.random() * 4)) {
+        case 0:
+          // Default di ball kiri atas
+          self.addBall(new Ball());
+          break;
+        case 1:
+          // kiri bawah
+          self.addBall(new Ball([0, canvas.height - 20], null, [1.0, 4.0]));
+          break;
+        case 2:
+          // ball kanan atas
+          self.addBall(new Ball([canvas.width - 20, 0 ], null, [-1.0, -4.0]));
+          break;
+        case 3:
+          // Default di ball kanan bawah
+          self.addBall(new Ball([canvas.width - 20, canvas.height - 20], null, [-1.0, 4.0]));
+      }
+
     }, 2000);
   }
 
   increaseScoreOverTime() {
     var self = this;
-    this.updateScoreIntervalID = setInterval(function() {
+    this.updateScoreIntervalID = setInterval(function () {
       if (!self.gameOver) {
         self.score += Game.INCREMENT_SCORE;
       }
@@ -86,7 +104,9 @@ class Game {
   }
 
   handleKeyPress(keyCode) {
-    const { player } = this;
+    const {
+      player
+    } = this;
     if (keyCode == 37) {
       // Left cursor key
       player.moveLeft();
@@ -112,15 +132,14 @@ class Game {
       }
     }
 
-    for (var i = 0; i < this.balls.length ; ++i) {
+    for (var i = 0; i < this.balls.length; ++i) {
       const ball = this.balls[i];
       ball.checkBorderCollision();
-      for (var j = i + 1; j < this.balls.length; ++j) {        
+      for (var j = i + 1; j < this.balls.length; ++j) {
         ball.checkCollision(this.balls[j]);
       }
     }
 
-    const newBalls = [];
     for (var ball of this.balls) {
       const result = ball.checkBorderCollision();
       if (result !== WallCollisionResultEnum.none) {
@@ -131,9 +150,6 @@ class Game {
         }
       }
     }
-    // for (var newBall of newBalls) {
-    //   this.addBall(newBall);
-    // }
   }
 
   randomizePlayerMovement() {
@@ -141,12 +157,6 @@ class Game {
     var player = this.player;
     player.location = add(player.location, player.velocity);
     player.normalize();
-    // var choice = Math.floor(Math.random() * 2);
-    // if (choice === 0) player.moveUp();
-    // else player.moveDown();
-    // var choice = Math.floor(Math.random() * 2);
-    // if (choice === 0) player.moveRight();
-    // else player.moveLeft();
   }
 
   animateObjects() {
