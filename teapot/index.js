@@ -379,8 +379,7 @@ function registerEventListeners() {
 
         // Horizontal
         if (newX < 0 || newX > 2) {
-          if (newX < 0) newX = 2;
-          if (newX > 2) newX = 0;
+          newX = oldX;
           msgAlert(
             "Informasi:", 
             "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan <b> Z Vertikal (Tengah Atas dan Tengah Bawah).</b> Arrow <b>Atas </b> akan ke <b>Layer Biru (Belakang) </b> dan Arrow <b>Bawah</b> akan ke <b>Layer Merah (Depan)</b>", 
