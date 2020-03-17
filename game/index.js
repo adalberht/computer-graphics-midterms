@@ -2,9 +2,6 @@
 
 var canvas;
 var gl;
-var shaderProgram;
-var resolution;
-var mvMatrix;
 var currentlyPressedKeys = {};
 
 var game;
@@ -12,17 +9,9 @@ var game;
 var playerObj;
 var ball;
 
-function normalToClip(src, apapun) {
-  var zeroToOne = vec3.divide(src, resolution);
-  var zeroToTwo = vec3.multiply(zeroToOne, [2.0, 2.0, 2.0]);
-  var dest = vec3.multiply(zeroToTwo, [1.0, -1.0, 0.0]);
-  return dest;
-}
-
 function initializeShaders(gl) {
-  shaderProgram = initShaders(gl, "vertex-shader", "fragment-shader");
+  var shaderProgram = initShaders(gl, "vertex-shader", "fragment-shader");
   gl.useProgram(shaderProgram);
-
   gl.program = shaderProgram;
 
   shaderProgram.resolutionUniformLocation = gl.getUniformLocation(
@@ -77,11 +66,12 @@ function initBuffers(object) {
     gl.STATIC_DRAW
   );
   object.colorBuffer.itemSize = 4;
-  object.colorBuffer.numItems = 4;
+  object.colorBuffer.numItems = 1;
 }
 
 function handleKeyDown(event) {
   currentlyPressedKeys[event.keyCode] = true;
+  handleKeys();
 }
 
 function handleKeyUp(event) {
@@ -89,21 +79,10 @@ function handleKeyUp(event) {
 }
 
 function handleKeys() {
-  if (currentlyPressedKeys[38]) {
-    // Up cursor key
-    game.player.moveUp();
-  }
-  if (currentlyPressedKeys[39]) {
-    // Right cursor key
-    game.player.moveRight();
-  }
-  if (currentlyPressedKeys[37]) {
-    // Left cursor key
-    game.player.moveLeft();
-  }
-  if (currentlyPressedKeys[40]) {
-    // Down cursor key
-    game.player.moveDown();
+  for (var keyCode in currentlyPressedKeys) {
+    if (currentlyPressedKeys[keyCode]) {
+      game.handleKeyPress(keyCode);
+    }
   }
 }
 
@@ -199,39 +178,39 @@ function checkCollision() {
     if (!!collisionOrientation) {
       game.end();
       Swal.fire({
-        icon: 'error',
+        icon: "error",
         title: "Game over!",
         html: `You have failed to dodge the ball.<br><b>Your score is: ${game.score}</b>`,
         confirmButtonText: "Start a new game",
-        onClose: initObjects,
+        onClose: initObjects
       });
     }
   }
   let collisionOrientation = getCollisionOrientation(playerObj, ball);
   if (collisionOrientation === "LEFT") {
-    vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-    vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-    
+    ball.multiplyVelocity([-1.0, 1.0]);
+    ball.multiplyVelocity([1.05, 1.05]);
+
     ball.location[0] =
       playerObj.location[0] - ball.width / 2.0 - playerObj.width / 2.0;
   }
   // Jika kena sisi kanan dari player
   if (collisionOrientation === "RIGHT") {
-    vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
-    vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+    ball.multiplyVelocity([-1.0, 1.0]);
+    ball.multiplyVelocity([1.05, 1.05]);
     ball.location[0] =
       playerObj.location[0] + ball.width / 2.0 + playerObj.width / 2.0;
   }
   // Jika kena sisi atas dari player
   if (collisionOrientation === "TOP") {
-    vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-    vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+    ball.multiplyVelocity([1.0, -1.0]);
+    ball.multiplyVelocity([1.05, 1.05]);
     ball.location[1] =
       playerObj.location[1] - ball.width / 2.0 - playerObj.width / 2.0;
   }
   if (collisionOrientation === "BOTTOM") {
-    vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
-    vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
+    ball.multiplyVelocity([1.0, -1.0]);
+    ball.multiplyVelocity([1.05, 1.05]);
     ball.location[1] =
       playerObj.location[1] + ball.width / 2.0 + playerObj.width / 2.0;
   }
@@ -241,14 +220,14 @@ function checkCollision() {
     ball.location[1] - ball.height / 2.0 < 0.0 ||
     ball.location[1] + ball.height / 2.0 >= canvas.height
   ) {
-    vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
+    ball.multiplyVelocity([1.0, -1.0]);
   }
   // Bola Kena Border Kanan/kiri
   if (
     ball.location[0] - ball.width / 2.0 < 0.0 ||
     ball.location[0] + ball.width / 2.0 >= canvas.width
   ) {
-    vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
+    ball.multiplyVelocity([-1.0, 1.0]);
   }
 }
 
@@ -257,7 +236,7 @@ function draw(object) {
   const { vertexBuffer, colorBuffer } = object;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
-    shaderProgram.vertexPositionAttribute,
+    gl.program.vertexPositionAttribute,
     vertexBuffer.itemSize,
     gl.FLOAT,
     false,
@@ -266,7 +245,7 @@ function draw(object) {
   );
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   gl.vertexAttribPointer(
-    shaderProgram.vertexColorAttribute,
+    gl.program.vertexColorAttribute,
     colorBuffer.itemSize,
     gl.FLOAT,
     false,
@@ -296,6 +275,7 @@ function tick() {
   handleKeys();
   drawScene();
   checkCollision();
+  
   animate();
   updateScore();
   requestAnimFrame(tick);
@@ -308,7 +288,7 @@ function animate() {
   var timeNow = new Date().getTime();
   if (lastTime != 0) {
     var elapsed = timeNow - lastTime;
-    ball.location = vec3.add(ball.location, ball.velocity);
+    ball.location = add(ball.location, ball.velocity);
   }
   lastTime = timeNow;
 }
@@ -336,7 +316,6 @@ function registerEventListeners() {
 
 window.onload = function() {
   canvas = document.getElementById("canvas");
-  resolution = [canvas.width, canvas.height, 1.0];
   initObjects();
   initGL();
   registerEventListeners();

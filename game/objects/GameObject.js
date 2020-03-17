@@ -32,9 +32,9 @@ class GameObject {
     this.canvasHeight = canvas.height;
   }
 
-  increaseVelocity(multiplier) {
-    if (this.velocity instanceof []) {
-      vec3.multiply(this.velocity, multiplier);
+  multiplyVelocity(multiplier) {
+    if (typeof(this.velocity) === typeof([])) {
+      this.velocity = mult(this.velocity, multiplier);
     } else {
       this.velocity *= multiplier;
     }
