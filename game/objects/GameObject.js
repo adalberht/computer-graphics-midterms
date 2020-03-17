@@ -16,7 +16,17 @@ class GameObject {
     this.velocity = velocity;
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
-    initBuffers(this);
+
+    this.createGLBuffers();
+  }
+
+  createGLBuffers() {
+    this.vertexBuffer = gl.createBuffer();
+    this.vertexBuffer.itemSize = 2;
+    this.vertexBuffer.numberOfItems = 4;
+    this.colorBuffer = gl.createBuffer();
+    this.colorBuffer.itemSize = 4;
+    this.colorBuffer.numberOfItems = 1;
   }
 
   // Getter property untuk kepentingan drawing di WebGL

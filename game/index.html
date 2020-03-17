@@ -28,6 +28,8 @@
       varying vec4 vColor;
 
       void main(void) {
+        // ClipSpace WebGL references: https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
+
       	// Convert the rectangle from pixels to 0.0 to 1.0
       	vec2 zeroToOne = aVertexPosition / uResolution;
       	// Convert from 0->1 to 0->2
@@ -48,9 +50,6 @@
         gl_FragColor = vColor;
       }
     </script>
-    <!--/Shaders-->
-    <!-- Classes-->
-    <!--/Classes-->
   </head>
 
   <body>

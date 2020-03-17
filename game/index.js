@@ -8,26 +8,26 @@ var game;
 
 // Fungsi untuk melakukan inisialisasi shader (kompilasi, link, etc.)
 function initializeShaders(gl) {
-  var shaderProgram = initShaders(gl, "vertex-shader", "fragment-shader");
-  gl.useProgram(shaderProgram);
-  gl.program = shaderProgram;
+  var program = initShaders(gl, "vertex-shader", "fragment-shader");
+  gl.useProgram(program);
+  gl.program = program;
 
-  shaderProgram.resolutionUniformLocation = gl.getUniformLocation(
-    shaderProgram,
+  program.resolutionLocation = gl.getUniformLocation(
+    program,
     "uResolution"
   );
 
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(
-    shaderProgram,
+  program.vertexPositionLocation = gl.getAttribLocation(
+    program,
     "aVertexPosition"
   );
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+  gl.enableVertexAttribArray(program.vertexPositionLocation);
 
-  shaderProgram.vertexColorAttribute = gl.getAttribLocation(
-    shaderProgram,
+  program.vertexColorLocation = gl.getAttribLocation(
+    program,
     "aVertexColor"
   );
-  gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+  gl.enableVertexAttribArray(program.vertexColorLocation);
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
@@ -71,16 +71,6 @@ function initGame() {
   initMenu();
 }
 
-// Fungsi untuk membuat buffer dan menaruh nya sebagai atribut di dalam objek
-function initBuffers(object) {
-  object.vertexBuffer = gl.createBuffer();
-  object.vertexBuffer.itemSize = 2;
-  object.vertexBuffer.numItems = 4;
-  object.colorBuffer = gl.createBuffer();
-  object.colorBuffer.itemSize = 4;
-  object.colorBuffer.numItems = 1;
-}
-
 // Fungsi yang dipanggil saat user menekan suatu key
 function handleKeyDown(event) {
   currentlyPressedKeys[event.keyCode] = true;
@@ -96,7 +86,7 @@ function draw(object) {
   const { vertexBuffer, colorBuffer } = object;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
-    gl.program.vertexPositionAttribute,
+    gl.program.vertexPositionLocation,
     vertexBuffer.itemSize,
     gl.FLOAT,
     false,
@@ -116,14 +106,14 @@ function draw(object) {
     gl.STATIC_DRAW
   );
   gl.vertexAttribPointer(
-    gl.program.vertexColorAttribute,
+    gl.program.vertexColorLocation,
     colorBuffer.itemSize,
     gl.FLOAT,
     false,
     0,
     0
   );
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBuffer.numItems);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBuffer.numberOfItems);
 }
 
 // Fungsi yang dipanggil setiap kali tick() untuk menggambar seluruh GameObject satu per satu ke canvas
@@ -180,7 +170,7 @@ function tick() {
 function onCanvasSizeChanged() {
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.uniform2f(
-    gl.program.resolutionUniformLocation,
+    gl.program.resolutionLocation,
     canvas.width,
     canvas.height
   );
