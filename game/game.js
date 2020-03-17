@@ -1,12 +1,20 @@
 class Game {
   static INCREMENT_SCORE = 10.0;
 
-  constructor() {
+  constructor(player, initialBall) {
+    this.started = false;
     this.score = 0.0;
     this.gameOver = false;
-    // TODO: move player and points objects here
-    this.player = null;
-    this.balls = [];
+    this.player = player || new Player(
+      [50.0, 50.0],
+      [0.0, 1.0, 0.0, 1.0],
+      canvas.width,
+      canvas.height
+    );
+    initialBall = initialBall || new Ball(
+      [250.0, 250.0], [0.0, 0.0, 1.0, 1.0]
+    );
+    this.balls = [initialBall];
   }
 
   setPlayer(player) {
@@ -18,11 +26,13 @@ class Game {
   }
 
   start() {
+    this.started = true;
     this.increaseScoreOverTime();
   }
 
   end() {
-    clearInterval(this.updateScoreIntervalID);
+    this.gameOver = true;
+    // clearInterval(this.updateScoreIntervalID);
   }
 
   increaseScoreOverTime() {
@@ -67,6 +77,14 @@ class GameObject {
   updateCanvasProperties(canvas) {
     this.canvasWidth = canvas.width;
     this.canvasHeight = canvas.height;
+  }
+
+  increaseVelocity(multiplier) {
+    if (this.velocity instanceof []) {
+      vec3.multiply(this.velocity, multiplier);
+    } else {
+      this.velocity *= multiplier;
+    }
   }
 }
 

@@ -11,7 +11,6 @@ var game;
 
 var playerObj;
 var ball;
-var balls = [];
 var allObj = [];
 
 function normalToClip(src, apapun) {
@@ -50,12 +49,9 @@ function initializeShaders(gl) {
 
 function initObjects() {
   game = new Game();
-  playerObj = new Player([50.0, 50.0], [0.0, 1.0, 0.0, 1.0], canvas.width, canvas.height);
-  game.setPlayer(playerObj);
-
-  ball = new Ball([250.0, 250.0], [0.0, 0.0, 1.0, 1.0], resolution);
-  game.addBall(ball);
-  balls.push(ball);
+  playerObj = game.player;
+  ball = game.balls[0];
+  game.start();
 }
 
 function initBuffers(object) {
@@ -114,7 +110,7 @@ function handleKeys() {
 
 // Mengambil bounding dari object
 function getBoundingBox(object) {
-  let minX, minY, maxX, maxY
+  let minX, minY, maxX, maxY;
   let width = object.width;
   let height = object.height;
   let originX = object.location[0];
@@ -127,41 +123,45 @@ function getBoundingBox(object) {
 
   // normalize min and max
   if (minX > maxX) {
-    let temp = maxX
-    maxX = minX
-    minX = temp
+    let temp = maxX;
+    maxX = minX;
+    minX = temp;
   }
   if (minY > maxY) {
-    let temp = maxY
-    maxY = minY
-    minY = temp
+    let temp = maxY;
+    maxY = minY;
+    minY = temp;
   }
   return [
     [minX, minY],
     [maxX, maxY]
-  ]
+  ];
 }
 
 // Berbagai fungsi helper untuk tahu tabrakan atau tidak
 // fungsi helper apakah antar objek ada titik yang overlap atau tabrakan
 function isSpanOverlap(startA, endA, startB, endB) {
-  return startA <= endB && startB <= endA
+  return startA <= endB && startB <= endA;
 }
 
 // Cek apakah objek a dan b tabrakan
 function isColliding(bBox_1, bBox_2) {
   let collidesHorizontally = isSpanOverlap(
-    bBox_1[0][0], bBox_1[1][0],
-    bBox_2[0][0], bBox_2[1][0]
-  )
+    bBox_1[0][0],
+    bBox_1[1][0],
+    bBox_2[0][0],
+    bBox_2[1][0]
+  );
   let collidesVertically = isSpanOverlap(
-    bBox_1[0][1], bBox_1[1][1],
-    bBox_2[0][1], bBox_2[1][1]
-  )
+    bBox_1[0][1],
+    bBox_1[1][1],
+    bBox_2[0][1],
+    bBox_2[1][1]
+  );
   if (collidesHorizontally && collidesVertically) {
-    return true
+    return true;
   } else {
-    return false
+    return false;
   }
 }
 
@@ -172,16 +172,18 @@ function getCollisionOrientation(objA, objB) {
 
   // Jika Obj tidak ada yang tabrakan tidak lanjut
   if (!isColliding(objABbox, objBBbox)) {
-    return undefined
+    return undefined;
   }
 
   // Jika objB tabrakan dikiri, sisi kirinya lebih kiri dari sisi objA
   // Sisi atas objB lebih tinggi dari objA
-  if (objBBbox[0][0] < objABbox[0][0] && objBBbox[0][1] < objABbox[1][1]) return "LEFT";
+  if (objBBbox[0][0] < objABbox[0][0] && objBBbox[0][1] < objABbox[1][1])
+    return "LEFT";
 
   // Jika objB tabrakan di kanan, sisi kanannya lebih kanan dari sisi objA
   // dan Sisi atas objB harus lebih tinggi dari objA
-  if (objBBbox[1][0] > objABbox[1][0] && objBBbox[0][1] < objABbox[1][1]) return "RIGHT";
+  if (objBBbox[1][0] > objABbox[1][0] && objBBbox[0][1] < objABbox[1][1])
+    return "RIGHT";
 
   // Tinggal cek apakah sisi atas objB lebih tinggi dari A jika sudah ketemu tinggal else
   if (objBBbox[0][1] < objABbox[0][1]) {
@@ -193,6 +195,18 @@ function getCollisionOrientation(objA, objB) {
 
 function checkCollision() {
   // Jika kena sisi kiri dari player
+  for (var ball of game.balls) {
+    let collisionOrientation = getCollisionOrientation(playerObj, ball);
+    if (!!collisionOrientation) {
+      game.end();
+      Swal.fire({
+        title: "Game over!",
+        html: `You have failed to dodge the ball.<br><b>Your score is: ${game.score}</b>`,
+        confirmButtonText: "Start a new game",
+        onClose: initObjects,
+      });
+    }
+  }
   let collisionOrientation = getCollisionOrientation(playerObj, ball);
   if (collisionOrientation === "LEFT") {
     vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
@@ -220,8 +234,8 @@ function checkCollision() {
       ball.mvMatrix,
       normalToClip([
         ball.width / 2.0 +
-        playerObj.width / 2.0 -
-        Math.abs(ball.location[0] - playerObj.location[0]),
+          playerObj.width / 2.0 -
+          Math.abs(ball.location[0] - playerObj.location[0]),
         0,
         0
       ])
@@ -237,15 +251,17 @@ function checkCollision() {
       ball.mvMatrix,
       normalToClip([
         0,
-        - (ball.height / 2.0 +
-        playerObj.height / 2.0 -
-        Math.abs(ball.location[1] - playerObj.location[1])),
+        -(
+          ball.height / 2.0 +
+          playerObj.height / 2.0 -
+          Math.abs(ball.location[1] - playerObj.location[1])
+        ),
         0
       ])
     );
     ball.location[1] =
       playerObj.location[1] - ball.width / 2.0 - playerObj.width / 2.0;
-  } 
+  }
   if (collisionOrientation === "BOTTOM") {
     vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
@@ -254,8 +270,8 @@ function checkCollision() {
       normalToClip([
         0,
         ball.height / 2.0 +
-        playerObj.height / 2.0 -
-        Math.abs(ball.location[1] - playerObj.location[1]),
+          playerObj.height / 2.0 -
+          Math.abs(ball.location[1] - playerObj.location[1]),
         0
       ])
     );
@@ -279,13 +295,9 @@ function checkCollision() {
   }
 }
 
-
 function draw(object) {
   initBuffers(object);
-  const {
-    vertexBuffer,
-    colorBuffer
-  } = object;
+  const { vertexBuffer, colorBuffer } = object;
   mvMatrix = object.mvMatrix;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
@@ -326,8 +338,8 @@ function updateScore() {
 
 function tick() {
   handleKeys();
-  checkCollision();
   drawScene();
+  checkCollision();
   animate();
   updateScore();
   requestAnimFrame(tick);
@@ -336,10 +348,11 @@ function tick() {
 var lastTime = 0;
 
 function animate() {
+  if (game.gameOver) return;
+
   var timeNow = new Date().getTime();
   if (lastTime != 0) {
     var elapsed = timeNow - lastTime;
-
     mat4.translate(
       ball.mvMatrix,
       normalToClip(Object.create(ball.velocity), resolution)
@@ -347,12 +360,15 @@ function animate() {
     ball.location = vec3.add(ball.location, ball.velocity);
   }
   lastTime = timeNow;
-
 }
 
 function onCanvasSizeChanged() {
   gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.uniform2f(gl.program.resolutionUniformLocation, canvas.width, canvas.height); // Resolution
+  gl.uniform2f(
+    gl.program.resolutionUniformLocation,
+    canvas.width,
+    canvas.height
+  ); // Resolution
   game.player.updateCanvasProperties(canvas);
 }
 
@@ -367,12 +383,11 @@ function registerEventListeners() {
   document.onkeyup = handleKeyUp;
 }
 
-window.onload = function () {
+window.onload = function() {
   canvas = document.getElementById("canvas");
   resolution = [canvas.width, canvas.height, 1.0];
   initObjects();
   initGL();
   registerEventListeners();
-  game.start();
   tick();
 };
