@@ -1,6 +1,7 @@
 "use strict";
 
 var numDivisions = 3;
+var cameraBefore;
 
 var index = 0;
 
@@ -237,6 +238,7 @@ function drawScene() {
 }
 
 onload = function init() {
+  msgAlert("Welcome", "Untuk mengubah kamera bisa dilakukan dengan <b>Arrow pada keyboard</b>, untuk menghentikan animasi ketuk tombol <b>Toogle Animation</b>", "info");
   canvas = document.getElementById("gl-canvas");
   perspectiveSettings = new PerspectiveSettings(canvas);
   initializeWebGL(canvas);
@@ -246,8 +248,17 @@ onload = function init() {
   render();
 };
 
-// Listener untuk pengubahan kamera
-// Sesuai dengan soal untuk pemidahan z, misal dari merah ke biru hanya melalui atas saja
+// Menampilkan alert
+function msgAlert(title, msg, icon) {
+  Swal.fire({
+    title: title,
+    html: msg,
+    icon: icon,
+    confirmButtonText: 'Continue'
+  })
+}
+
+
 function registerEventListeners() {
   document.getElementById("ButtonT").onclick = toggleAnimation;
   document.addEventListener('keydown', function (event) {
@@ -271,34 +282,89 @@ function registerEventListeners() {
     };
     if (event.keyCode in keyCodeToDirection) {
       var direction = keyCodeToDirection[event.keyCode];
-      var newX = cameraController.x + direction.x;
-      var newY = cameraController.y + direction.y;
-      let tmpZ = cameraController.z
-      console.log(newX + " " + newY + " " + cameraController.z);
-      // Jika diatas
+      var oldX = cameraController.x;
+      var oldY = cameraController.y;
+      var newX = oldX + direction.x;
+      var newY = oldY + direction.y;
 
-      if (newX < 0) {
-        newX = 0;
-        cameraController.incrementZ();
-      } else if (newX > 2) {
-        newX = 2;
-        cameraController.decrementZ();
+      // Handle tidak bisa pindah Horizontal
+      if (newX < 0 || newX > 2) {
+        newX = oldX;
+        msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal", "Untuk mengganti Z silahkan ke titik tengah atas, atau bawah secara vertikal", "error");
       }
-      // Pergantian Z
-      // Jika diatas
-      if (newY == -1) {
-        newY = 0;
-        if ((tmpZ - 1 != -2)) {
-          cameraController.z--;
+
+      // Handle tidak bisa pindah Vertikal jika dipojok
+      if (oldX == 0 || oldX == 2) {
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Tidak Bisa Ganti Dimensi Vertikal di Pojok", "Untuk mengganti Z Vertikal silahkan ke titik tengah atas, atau bawah", "error");
         }
-        if ((tmpZ - 1 == -2)) {
-          swal("Sudah berada pada titik hijau (belakang) maksimal")
-        }
-      } else if (newY == 1) {
-        newY = 0;
-        cameraController.z++;
-        cameraController.y = newY;
       }
+
+      // Layer Merah (Paling depan)
+      // Berpindah secara vertikal
+      if (cameraController.z == 1) {
+        document.getElementById("layer-info").innerHTML = "Merah (Depan)";
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah, Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          cameraController.changeZ(false);
+        }
+      }
+
+      // Layer Hijau (Tengah)
+      if (cameraController.z == 0) {
+        document.getElementById("layer-info").innerHTML = "Hijau (Tengah)";
+
+        // Saat Atas dan bawah pindah sesuai informasi dari alert 
+        // Panah Atas(y--) akan ke layer biru Panah Bawah(y++) ke layer merah
+        // Tengah Atas(1,0,0)
+        if (oldX == 1) {
+          if (oldY == 0) {
+            // Handle Arrow Atas
+            if (newY < 0) { // Ke Biru
+              newY = oldY;
+              cameraController.changeZ(false);
+            } else if (newY == 1) { // Ke Merah
+              newY = 0;
+              cameraController.changeZ(true);
+            }
+          }
+
+          // Tengah Bawah(1,2,0)
+          if (oldY == 2) {
+            // Handle Arrow Atas
+            if (newY == 1) { // Ke Merah
+              newY = 2;
+              cameraController.changeZ(false);
+            } else if (newY > 2) { // Ke Biru
+              newY = oldY;
+              cameraController.changeZ(true);
+            }
+          }
+        }
+      }
+
+
+      // Layer Biru 
+      if (cameraController.z == -1) {
+        document.getElementById("layer-info").innerHTML = "Biru (Belakang)";
+        if (newY < 0 || newY > 2) {
+          newY = oldY;
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah, Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          cameraController.changeZ(false);
+        }
+      }
+
+      // Label Naming Kamera X
+      if (newX == 0) document.getElementById("camera-info").innerHTML = "Kiri";
+      else if (newX == 1) document.getElementById("camera-info").innerHTML = "Tengah";
+      else if (newX == 2) document.getElementById("camera-info").innerHTML = "Kanan";
+
+      // Label Naming Kamera Y
+      if (newY == 0) document.getElementById("camera-info").innerHTML += " - Atas";
+      else if (newY == 1) document.getElementById("camera-info").innerHTML += " - Pusat";
+      else if (newY == 2) document.getElementById("camera-info").innerHTML += " - Bawah";
       cameraController.x = newX;
       cameraController.y = newY;
     }

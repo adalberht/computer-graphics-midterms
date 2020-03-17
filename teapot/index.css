@@ -8,12 +8,16 @@ body {
   overflow-x: hidden;
 }
 canvas {
-  width: 95%;
-  height: 95%;
+  width: 88%;
+  height: 88%;
   border: solid 1px;
 }
 .ButtonT {
   position: absolute;
   bottom: -10%;
   right: 0;
+}
+
+h6,p {
+  display: inline;  
 }
