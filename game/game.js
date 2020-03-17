@@ -127,7 +127,6 @@ class Game {
     for (var ball of this.balls) {
       let collisionOrientation = getCollisionOrientation(this.player, ball);
       if (collisionOrientation !== undefined) {
-        console.log(collisionOrientation);
         onPlayerCollision();
       }
     }

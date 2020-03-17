@@ -46,7 +46,7 @@ function endDemo() {
 function initMenu() {
   Swal.fire({
     icon: "info",
-    text: "Welcome to Dodge Ball Game!",
+    text: "Welcome to Dodge Ball Game! Use arrow Key to control the player (Green)",
     showCancelButton: true,
     confirmButtonText: "Start Game",
     cancelButtonText: "Demo"
