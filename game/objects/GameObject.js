@@ -31,6 +31,7 @@ class GameObject {
 
   // Getter property untuk kepentingan drawing di WebGL
   get vertices() {
+    // destructure operator available in ES5 JavaScript
     const { location, width, height } = this;
     const p1 = location;
     const p2 = add(location, vec2(0, height));

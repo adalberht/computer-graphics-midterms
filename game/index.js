@@ -83,7 +83,9 @@ function handleKeyUp(event) {
 
 // Fungsi yang dipanggil untuk menggambar satu buah GameObject ke canvas WebGL
 function draw(object) {
-  const { vertexBuffer, colorBuffer } = object;
+  // destructuring operator available in ES5 of JavaScript
+  // equals to: const vertexBuffer = object.vertexBuffer, colorBuffer = object.colorBuffer;
+  const { vertexBuffer, colorBuffer } = object; 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
     gl.program.vertexPositionLocation,

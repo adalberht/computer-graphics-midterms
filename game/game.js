@@ -103,9 +103,7 @@ class Game {
   }
 
   handleKeyPress(keyCode) {
-    const {
-      player
-    } = this;
+    const player = this.player;
     if (keyCode == 37) {
       // Left cursor key
       player.moveLeft();
@@ -137,17 +135,6 @@ class Game {
         ball.checkCollision(this.balls[j]);
       }
     }
-
-    for (var ball of this.balls) {
-      const result = ball.checkBorderCollision();
-      if (result !== WallCollisionResultEnum.none) {
-        if (result === WallCollisionResultEnum.vertical) {
-          ball.onVerticalBorderCollision();
-        } else if (result === WallCollisionResultEnum.horizontal) {
-          ball.onHorizontalBorderCollision();
-        }
-      }
-    }
   }
 
   randomizePlayerMovement() {
@@ -165,6 +152,7 @@ class Game {
   }
 
   get objects() {
+    // Spread operator, available in ES6 version of JS
     return [this.player, ...this.balls];
   }
 }

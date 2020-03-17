@@ -1,9 +1,3 @@
-const WallCollisionResultEnum = Object.freeze({
-  none: 0,
-  vertical: 1,
-  horizontal: 2
-});
-
 // Kelas Bola untuk handle pembuatan bola
 class Ball extends GameObject {
   constructor(startLocation, color, velocity) {
@@ -35,16 +29,15 @@ class Ball extends GameObject {
       this.location[1] <= 0.0 ||
       this.location[1] + this.height >= canvas.height
     ) {
-      return WallCollisionResultEnum.vertical;
+      this.onVerticalBorderCollision();
     }
     // Bola Kena Border Kanan/kiri
     if (
-      this.location[0] < 0.0 ||
+      this.location[0] <= 0.0 ||
       this.location[0] + this.width >= canvas.width
     ) {
-      return WallCollisionResultEnum.horizontal;
+      this.onHorizontalBorderCollision();
     }
-    return WallCollisionResultEnum.none;
   }
 
   clone() {
