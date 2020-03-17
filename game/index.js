@@ -32,17 +32,32 @@ function initializeShaders(gl) {
   gl.enable(gl.DEPTH_TEST);
 }
 
+function startDemo() {
+  game.startDemo();
+  document.getElementById('end-demo').style.visibility = 'visible';
+}
+
+function endDemo() {
+  game.endDemo();
+  document.getElementById('end-demo').style.visibility = 'hidden';
+  showEndMenu(true);
+}
+
 function initMenu() {
   Swal.fire({
-    icon: 'info',
-    text: 'Welcome to Dodge Ball Game!',
+    icon: "info",
+    text: "Welcome to Dodge Ball Game!",
     showCancelButton: true,
-    confirmButtonText: 'Start Game',
-    cancelButtonText: 'Demo',
-  }).then(function() {
-    game.start();
+    confirmButtonText: "Start Game",
+    cancelButtonText: "Demo"
+  }).then(function(result) {
+    if (result.value) {
+      game.start();
+    } else {
+      startDemo();
+    }
   });
-}  
+}
 
 function initGame() {
   game = new Game();
@@ -111,21 +126,31 @@ function updateScore() {
   scoreDom.innerText = `Score: ${game.score}`;
 }
 
+function showEndMenu(demo) {
+  Swal.fire({
+    icon: demo ? "success" : "error",
+    title: demo ? "Demo is over!" : "Game over!",
+    html: demo
+      ? `Computer has failed to dodge the ball.<br><b>It's score is ${game.score}`
+      : `You have failed to dodge the ball.<br><b>Your score is: ${game.score}</b>`,
+    confirmButtonText: "Back to Main Menu",
+    onClose: function() {
+      game.end();
+      initGame();
+    }
+  });
+}
+
 function tick() {
   if (game.shouldTick()) {
     game.handleKeyPresses(currentlyPressedKeys);
+    game.randomizePlayerMovement();
     game.checkCollision(function() {
+      var demo = game.demo;
+      if (demo) endDemo();
       game.end();
-      Swal.fire({
-        icon: "error",
-        title: "Game over!",
-        html: `You have failed to dodge the ball.<br><b>Your score is: ${game.score}</b>`,
-        confirmButtonText: "Start a new game",
-        onClose: function() {
-          console.log('Closed game over!!!');
-          initGame();
-        }
-      });
+      showEndMenu(demo);
+      
     });
     game.animateObjects();
     drawScene();
@@ -155,7 +180,6 @@ function registerEventListeners() {
   document.onkeydown = handleKeyDown;
   document.onkeyup = handleKeyUp;
 }
-
 
 window.onload = function() {
   canvas = document.getElementById("canvas");

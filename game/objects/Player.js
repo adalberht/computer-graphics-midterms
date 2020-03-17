@@ -2,47 +2,54 @@
 // Kelas Player untuk pembuatan player
 class Player extends GameObject {
   constructor(startLocation, color, canvasWidth, canvasHeight) {
+    var baseVelocity = 8.0;
     super({
       startLocation,
       color,
       width: 50,
       height: 50,
-      velocity: 8.0,
+      velocity: [baseVelocity, baseVelocity],
       canvasWidth,
       canvasHeight
     });
+    this.baseVelocity = baseVelocity;
   }
 
-  moveUp() {
-    this.location = add(this.location, vec2(0, -this.velocity));
+  normalize() {
+    // Check top border
     if (this.location[1] <= 0) {
       this.location[1] = 0;
       this.onTopBorderReached();
     }
-  }
-
-  moveRight() {
-    this.location = add(this.location, vec2(this.velocity, 0));
     if (this.location[0] + this.width >= this.canvasWidth) {
       this.location[0] = this.canvasWidth - this.width;
       this.onRightBorderReached();
     }
-  }
-
-  moveDown() {
-    this.location = add(this.location, vec2(0, this.velocity));
     if (this.location[1] + this.height >= this.canvasHeight) {
       this.location[1] = this.canvasHeight - this.height;
       this.onBottomBorderReached();
     }
-  }
-
-  moveLeft() {
-    this.location = add(this.location, vec2(-this.velocity, 0));
     if (this.location[0] <= 0) {
       this.location[0] = 0;
       this.onLeftBorderReached();
     }
+  }
+
+  moveUp() {
+    this.location = add(this.location, vec2(0, -this.baseVelocity));
+  }
+
+  moveRight() {
+    this.location = add(this.location, vec2(this.baseVelocity, 0));
+  }
+
+  moveDown() {
+    this.location = add(this.location, vec2(0, this.baseVelocity));
+  }
+
+  moveLeft() {
+    this.location = add(this.location, vec2(-this.baseVelocity, 0));
+    
   }
 
   onTopBorderReached() {
@@ -60,6 +67,4 @@ class Player extends GameObject {
   onRightBorderReached() {
     console.log("Player has reached right border");
   }
-
-  
 }
