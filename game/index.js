@@ -211,18 +211,7 @@ function checkCollision() {
   if (collisionOrientation === "LEFT") {
     vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-    mat4.translate(
-      ball.mvMatrix,
-      normalToClip([
-        -(
-          ball.width / 2.0 +
-          playerObj.width / 2.0 -
-          Math.abs(ball.location[0] - playerObj.location[0])
-        ),
-        0,
-        0
-      ])
-    );
+    
     ball.location[0] =
       playerObj.location[0] - ball.width / 2.0 - playerObj.width / 2.0;
   }
@@ -230,16 +219,6 @@ function checkCollision() {
   if (collisionOrientation === "RIGHT") {
     vec3.multiply(ball.velocity, [-1.0, 1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-    mat4.translate(
-      ball.mvMatrix,
-      normalToClip([
-        ball.width / 2.0 +
-          playerObj.width / 2.0 -
-          Math.abs(ball.location[0] - playerObj.location[0]),
-        0,
-        0
-      ])
-    );
     ball.location[0] =
       playerObj.location[0] + ball.width / 2.0 + playerObj.width / 2.0;
   }
@@ -247,34 +226,12 @@ function checkCollision() {
   if (collisionOrientation === "TOP") {
     vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-    mat4.translate(
-      ball.mvMatrix,
-      normalToClip([
-        0,
-        -(
-          ball.height / 2.0 +
-          playerObj.height / 2.0 -
-          Math.abs(ball.location[1] - playerObj.location[1])
-        ),
-        0
-      ])
-    );
     ball.location[1] =
       playerObj.location[1] - ball.width / 2.0 - playerObj.width / 2.0;
   }
   if (collisionOrientation === "BOTTOM") {
     vec3.multiply(ball.velocity, [1.0, -1.0, 1.0]);
     vec3.multiply(ball.velocity, [1.05, 1.05, 1.0]);
-    mat4.translate(
-      ball.mvMatrix,
-      normalToClip([
-        0,
-        ball.height / 2.0 +
-          playerObj.height / 2.0 -
-          Math.abs(ball.location[1] - playerObj.location[1]),
-        0
-      ])
-    );
     ball.location[1] =
       playerObj.location[1] + ball.width / 2.0 + playerObj.width / 2.0;
   }
@@ -348,14 +305,9 @@ var lastTime = 0;
 
 function animate() {
   // if (game.gameOver) return;
-
   var timeNow = new Date().getTime();
   if (lastTime != 0) {
     var elapsed = timeNow - lastTime;
-    mat4.translate(
-      ball.mvMatrix,
-      normalToClip(Object.create(ball.velocity), resolution)
-    );
     ball.location = vec3.add(ball.location, ball.velocity);
   }
   lastTime = timeNow;
@@ -367,7 +319,7 @@ function onCanvasSizeChanged() {
     gl.program.resolutionUniformLocation,
     canvas.width,
     canvas.height
-  ); // Resolution
+  );
   game.player.updateCanvasProperties(canvas);
 }
 

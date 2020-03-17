@@ -5,11 +5,5 @@ class Ball extends GameObject {
     const width = 20;
     const height = 20;
     super({ startLocation, color, width, height, velocity });
-    this.mvMatrix = mat4.create();
-    mat4.identity(this.mvMatrix);
-    mat4.translate(
-      this.mvMatrix,
-      normalToClip(Object.create(startLocation), resolution)
-    );
   }
 }
