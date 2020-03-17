@@ -1,6 +1,6 @@
 "use strict";
 
-var step = 0.1;
+var step = 0.01;
 
 var bound = 2.0;
 

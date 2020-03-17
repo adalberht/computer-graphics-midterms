@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+  
+  <link rel="stylesheet" href="libs/sweetalert2.min.css">
+  <link rel="stylesheet" href="libs/bootstrap.min.css">
   <link rel="stylesheet" href="./index.css" />
   
   <script id="vertex-shader" type="x-shader/x-vertex">
@@ -64,6 +67,7 @@
   <script type="text/javascript" src="./Common/MV.js"></script>
   <script type="text/javascript" src="libs/vertices.js"></script>
   <script type="text/javascript" src="libs/patches.js"></script>
+  <script type="text/javascript" src="libs/sweetalert2.all.min.js"></script>
   <script type="text/javascript" src="utils.js"></script>
   <script type="text/javascript" src="animation.js"></script>
   <script type="text/javascript" src="camera.js"></script>
@@ -72,6 +76,9 @@
     <canvas id="gl-canvas">
       Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
+    <h6>Layer: <p id="layer-info">Merah (Depan)</p></h6>
+    <h6>Posisi Kamera: <p id="camera-info">Tengah - Pusat</p></h6>
     <button id="ButtonT">Toggle Animation</button>
+    
   </body>
 </html>
