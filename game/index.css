@@ -22,3 +22,11 @@ canvas {
     color: white;
     font-size: 2rem;
 }
+
+#end-demo {
+    position: absolute;
+    top: 3rem;
+    right: 0;
+    color: white;
+    visibility: hidden;
+}

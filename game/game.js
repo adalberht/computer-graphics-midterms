@@ -5,6 +5,7 @@ class Game {
     this.started = false;
     this.score = 0.0;
     this.gameOver = false;
+    this.demo = false;
     player =
       player ||
       new Player(
@@ -36,6 +37,25 @@ class Game {
     clearInterval(this.spawnRandomBallIntervalID);
   }
 
+  startDemo() {
+    this.start();
+    this.demo = true;
+    var self = this;
+    this.demoIntervalID = setInterval(function() {
+      if (self.player.velocity[0] === 0) self.player.velocity[0] = self.player.baseVelocity;
+      if (self.player.velocity[1] === 0) self.player.velocity[1] = self.player.baseVelocity;
+      const vx = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
+      const vy = Math.floor(Math.random() * 3) - 1; // random between [-1, 0, 1];
+      self.player.multiplyVelocity([vx, vy]);
+    }, 500);
+  }
+
+  endDemo() {
+    this.demo = false;
+    this.started = false;
+    clearInterval(this.demoIntervalID);
+  }
+
   shouldTick() {
     return this.started && !this.gameOver;
   }
@@ -57,6 +77,7 @@ class Game {
   }
 
   handleKeyPresses(keyPresses) {
+    if (this.demo) return;
     for (var keyCode in keyPresses) {
       if (keyPresses[keyCode]) {
         this.handleKeyPress(keyCode);
@@ -65,19 +86,21 @@ class Game {
   }
 
   handleKeyPress(keyCode) {
+    const { player } = this;
     if (keyCode == 37) {
       // Left cursor key
-      game.player.moveLeft();
+      player.moveLeft();
     } else if (keyCode == 38) {
       // Up cursor key
-      game.player.moveUp();
+      player.moveUp();
     } else if (keyCode == 39) {
       // Right cursor key
-      game.player.moveRight();
+      player.moveRight();
     } else if (keyCode == 40) {
       // Down cursor key
-      game.player.moveDown();
+      player.moveDown();
     }
+    player.normalize();
   }
 
   checkCollision(onPlayerCollision) {
@@ -111,6 +134,19 @@ class Game {
     // for (var newBall of newBalls) {
     //   this.addBall(newBall);
     // }
+  }
+
+  randomizePlayerMovement() {
+    if (!this.demo) return;
+    var player = this.player;
+    player.location = add(player.location, player.velocity);
+    player.normalize();
+    // var choice = Math.floor(Math.random() * 2);
+    // if (choice === 0) player.moveUp();
+    // else player.moveDown();
+    // var choice = Math.floor(Math.random() * 2);
+    // if (choice === 0) player.moveRight();
+    // else player.moveLeft();
   }
 
   animateObjects() {
