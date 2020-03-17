@@ -288,10 +288,13 @@ function registerEventListeners() {
       var newY = oldY + direction.y;
 
       // Handle tidak bisa pindah Horizontal
-      if (newX < 0 || newX > 2) {
-        newX = oldX;
-        msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal", "Untuk mengganti Z silahkan ke titik tengah atas, atau bawah secara vertikal", "error");
+      if (oldY == 0 || oldY == 2) {
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal di Pojok", "Untuk mengganti Z Horizontal selain di layer tengah silahkan ke titik Kanan Pusat atau Kiri Pusat", "error");
+        }
       }
+
 
       // Handle tidak bisa pindah Vertikal jika dipojok
       if (oldX == 0 || oldX == 2) {
@@ -304,18 +307,25 @@ function registerEventListeners() {
       // Layer Merah (Paling depan)
       // Berpindah secara vertikal
       if (cameraController.z == 1) {
-        document.getElementById("layer-info").innerHTML = "Merah (Depan)";
         if (newY < 0 || newY > 2) {
           newY = oldY;
-          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah, Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah bisa dilakukan di titik tengah atas dan tengah bawah. Arrow <b>Atas Akan ke Layer Biru (Belakang)</b> dan Arrow <b>Bawah ke Layer Merah (Depan)</b>", "info");
+          cameraController.changeZ(false);
+        }
+
+        // Horizontal
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert(
+            "Informasi:", 
+            "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan <b> Z Vertikal (Tengah Atas dan Tengah Bawah).</b> Arrow <b>Atas </b> akan ke <b>Layer Biru (Belakang) </b> dan Arrow <b>Bawah</b> akan ke <b>Layer Merah (Depan)</b>", 
+            "info");
           cameraController.changeZ(false);
         }
       }
 
       // Layer Hijau (Tengah)
       if (cameraController.z == 0) {
-        document.getElementById("layer-info").innerHTML = "Hijau (Tengah)";
-
         // Saat Atas dan bawah pindah sesuai informasi dari alert 
         // Panah Atas(y--) akan ke layer biru Panah Bawah(y++) ke layer merah
         // Tengah Atas(1,0,0)
@@ -325,6 +335,9 @@ function registerEventListeners() {
             if (newY < 0) { // Ke Biru
               newY = oldY;
               cameraController.changeZ(false);
+              msgAlert("Informasi:", 
+              "Karena melihat perspektif perpindahan dari depan maka di layer biru perpindahan horizontal terasa <b>inverted</b>", 
+              "warning");
             } else if (newY == 1) { // Ke Merah
               newY = 0;
               cameraController.changeZ(true);
@@ -340,18 +353,38 @@ function registerEventListeners() {
             } else if (newY > 2) { // Ke Biru
               newY = oldY;
               cameraController.changeZ(true);
+              msgAlert("Informasi:", 
+              "Karena melihat perspektif perpindahan dari depan maka di layer biru perpindahan horizontal terasa <b>inverted</b>", 
+              "warning");
             }
           }
+        }
+
+        // Saat Horizontal tidak bisa di tengah, karena kalau bisa tidak bisa ke titik pusat hijau
+        if (newX < 0 || newX > 2) {
+          newX = oldX;
+          msgAlert("Tidak Bisa Ganti Dimensi Secara Horizontal di Layer Tengah", "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan Z <b>Vertikal</b> Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "error");
         }
       }
 
 
       // Layer Biru 
       if (cameraController.z == -1) {
-        document.getElementById("layer-info").innerHTML = "Biru (Belakang)";
+        // Vertikal
         if (newY < 0 || newY > 2) {
           newY = oldY;
-          msgAlert("Informasi:", "Untuk mengganti Z Vertikal Pada Layer Tengah, Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          msgAlert("Informasi:", "Untuk mengganti Z Vertikal pada Layer Tengah, bisa dilakukan di titik tengah atas dan tengah bawah. Arrow <b>Atas Akan ke Layer Biru </b> dan Arrow <b>Bawah ke Layer Merah</b>", "info");
+          cameraController.changeZ(false);
+        }
+
+        // Horizontal
+        if (newX < 0 || newX > 2) {
+          if (newX < 0) newX = 2;
+          if (newX > 2) newX = 0;
+          msgAlert(
+            "Informasi:", 
+            "Untuk mengganti Z Pada Layer Tengah, Gunakan Pindahan <b> Z Vertikal (Tengah Atas dan Tengah Bawah).</b> Arrow <b>Atas </b> akan ke <b>Layer Biru (Belakang) </b> dan Arrow <b>Bawah</b> akan ke <b>Layer Merah (Depan)</b>", 
+            "info");
           cameraController.changeZ(false);
         }
       }
@@ -363,8 +396,14 @@ function registerEventListeners() {
 
       // Label Naming Kamera Y
       if (newY == 0) document.getElementById("camera-info").innerHTML += " - Atas";
-      else if (newY == 1) document.getElementById("camera-info").innerHTML += " - Pusat";
+      else if (newY == 1) document.getElementById("camera-info").innerHTML += " - Tengah";
       else if (newY == 2) document.getElementById("camera-info").innerHTML += " - Bawah";
+
+      // Label Handling Layer (Z)
+      if (cameraController.z == -1) document.getElementById("layer-info").innerHTML = "Biru (Belakang)";
+      else if (cameraController.z == 0) document.getElementById("layer-info").innerHTML = "Hijau (Tengah)";
+      else if (cameraController.z == 1) document.getElementById("layer-info").innerHTML = "Merah (Depan)";
+
       cameraController.x = newX;
       cameraController.y = newY;
     }

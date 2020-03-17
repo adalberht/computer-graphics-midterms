@@ -59,11 +59,11 @@ CameraController.prototype = {
   get up() {
     return vec3(0, 1, 0);
   },
-  changeZ: function (isRotateFront) {
+  changeZ: function (isRotateFrontFromMid) {
     if (this.z == 1) {
       this.z = 0;
     } else if (this.z == 0) {
-      if (isRotateFront) {
+      if (isRotateFrontFromMid) {
         this.z = 1;
       } else {
         this.z = -1;
