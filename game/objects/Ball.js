@@ -21,12 +21,12 @@ class Ball extends GameObject {
 
   onVerticalBorderCollision() {
     this.multiplyVelocity([1.0, -1.0]);
-    this.multiplyVelocity([1.05, 1.05]);
+    this.multiplyVelocity([1.01, 1.01]);
   }
 
   onHorizontalBorderCollision() {
     this.multiplyVelocity([-1.0, 1.0]);
-    this.multiplyVelocity([1.05, 1.05]);
+    this.multiplyVelocity([1.01, 1.01]);
   }
 
   checkBorderCollision() {

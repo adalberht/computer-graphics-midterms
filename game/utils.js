@@ -27,10 +27,10 @@ function getBoundingBox(object) {
   let originX = object.location[0];
   let originY = object.location[1];
 
-  minX = originX - width / 2;
-  maxX = originX + width / 2;
-  minY = originY - height / 2;
-  maxY = originY + height / 2;
+  minX = originX;
+  maxX = originX + width;
+  minY = originY;
+  maxY = originY + height;
 
   // normalize min and max
   if (minX > maxX) {
