@@ -11,7 +11,6 @@ var game;
 
 var playerObj;
 var ball;
-var allObj = [];
 
 function normalToClip(src, apapun) {
   var zeroToOne = vec3.divide(src, resolution);
@@ -200,6 +199,7 @@ function checkCollision() {
     if (!!collisionOrientation) {
       game.end();
       Swal.fire({
+        icon: 'error',
         title: "Game over!",
         html: `You have failed to dodge the ball.<br><b>Your score is: ${game.score}</b>`,
         confirmButtonText: "Start a new game",
@@ -298,7 +298,6 @@ function checkCollision() {
 function draw(object) {
   initBuffers(object);
   const { vertexBuffer, colorBuffer } = object;
-  mvMatrix = object.mvMatrix;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.vertexAttribPointer(
     shaderProgram.vertexPositionAttribute,
@@ -348,7 +347,7 @@ function tick() {
 var lastTime = 0;
 
 function animate() {
-  if (game.gameOver) return;
+  // if (game.gameOver) return;
 
   var timeNow = new Date().getTime();
   if (lastTime != 0) {
